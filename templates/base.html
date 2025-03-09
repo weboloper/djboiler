@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Django Project{% endblock %}</title>
+    {% block head %}
+    <!-- Additional head content like CSS links, JS files can go here -->
+    {% endblock %}
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                {% comment %} 
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'login' %}">Login</a></li>
+                <li><a href="{% url 'logout' %}">Logout</a></li>
+                <li><a href="{% url 'register' %}">Register</a></li>
+                {% endcomment %}
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        <!-- Content will be inserted here from child templates -->
+        {% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; 2025 My Django Project</p>
+    </footer>
+
+    {% block scripts %}
+    <!-- Optional JavaScript files or inline scripts -->
+    {% endblock %}
+</body>
+</html>
