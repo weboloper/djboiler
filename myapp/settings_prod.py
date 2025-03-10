@@ -2,17 +2,16 @@ from .settings_base import *
 
 DEBUG = False
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
-
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT"),
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASSWORD"),
+        "HOST": config("DB_HOST"),
+        "PORT": config("DB_PORT"),
     }
 }
 
@@ -48,6 +47,9 @@ SECURE_HSTS_PRELOAD = True  # Allow browser preload list (optional)
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
+
+
+SECURE_SSL_REDIRECT=True
 
 # Prevent MIME-type sniffing
 SECURE_CONTENT_TYPE_NOSNIFF = True  

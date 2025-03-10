@@ -39,10 +39,6 @@ config = Config(RepositoryEnv(env_file))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY =  config('DJANGO_SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG')
-
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 # CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', cast=Csv())
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -55,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     "django_celery_beat",
     "django_celery_results",
@@ -138,19 +135,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-# Define STATIC and MEDIA settings
-STATIC_URL = "static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static',]
 
-MEDIA_URL = "media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = '/uploads/'
+MEDIA_ROOT = BASE_DIR / 'uploads'
 
-# Additional locations of static files (Only for local & S3)
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-]
-
-STORAGE_BACKEND = config('STORAGE_BACKEND', default="whitenoise")
+# Storage Backend Configuration
+STORAGE_BACKEND = config("STORAGE_BACKEND", default="None")
 STORAGES = {
     "default": {},  # Will be set dynamically
     "staticfiles": {},  # Will be set dynamically
@@ -162,38 +155,41 @@ if STORAGE_BACKEND == "s3":
     STORAGES["staticfiles"]["BACKEND"] = "storages.backends.s3.S3Storage"
 
     AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
-    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
-    AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default="eu-north-1")
+    AWS_ACCESS_KEY_ID = config('DJANGO_SECRET_KEY')
+    AWS_SECRET_ACCESS_KEY = config('DJANGO_SECRET_KEY')
+    AWS_S3_REGION_NAME = config('DJANGO_SECRET_KEY', default="eu-north-1")
     AWS_S3_SIGNATURE_VERSION = 's3v4'
 
     AWS_QUERYSTRING_AUTH = False  # Public URLs for static/media files
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',  # Optimize caching
     }
-    AWS_CUSTOM_DOMAIN = f'{config('AWS_STORAGE_BUCKET_NAME')}.amazonaws.com/'
+    AWS_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/'
     AWS_DEFAULT_ACL = None  # Avoids issues with public/private access
-    AWS_S3_FILE_OVERWRITE = False  # Prevents overwriting files with same name
+    AWS_S3_FILE_OVERWRITE = False  # Prevents overwriting files with the same name
 
-    STATICFILES_DIRS = []  # Avoid duplicate static file handling
+    STATICFILES_DIRS = []  # Avoid duplicate static file handling when using S3
 
-elif STORAGE_BACKEND == "whitenoise":
-    # Use WhiteNoise for static, local for media. Production (Heroku, Docker)
-    STORAGES["default"]["BACKEND"] = "django.core.files.storage.FileSystemStorage"
-    STORAGES["staticfiles"]["BACKEND"] = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-    WHITENOISE_RUNSERVER_NOSTATIC = True  # Prevents Django’s dev server from interfering with WhiteNoise
-    STATICFILES_DIRS = []  # Avoid duplicate static file handling
-
-else:  # Default: Local file system storage (Nginx setup)
+elif STORAGE_BACKEND == "ngnix":
+    # Local file system storage (Nginx setup)
     STORAGES["default"]["BACKEND"] = "django.core.files.storage.FileSystemStorage"
     STORAGES["staticfiles"]["BACKEND"] = "django.contrib.staticfiles.storage.StaticFilesStorage"
 
-    # No need to override STATIC_ROOT and MEDIA_ROOT again
-    # They are already set globally 
-    STATIC_ROOT = config('STATIC_ROOT')   # Make sure this is correct
-    MEDIA_ROOT = config('MEDIA_ROOT')  # Make sure this is correct
+    # Set the directories for local static/media files
+    STATIC_ROOT = config('STATIC_ROOT', default=os.path.join(BASE_DIR, 'staticfiles'))
+    MEDIA_ROOT = config('MEDIA_ROOT', default=os.path.join(BASE_DIR, 'media'))
 
+elif STORAGE_BACKEND == "whitenoise":
+    # Default: Use WhiteNoise for static, local for media (for production, Heroku, Docker)
+    STORAGES["default"]["BACKEND"] = "django.core.files.storage.FileSystemStorage"
+    STORAGES["staticfiles"]["BACKEND"] = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+else:
+    # Default: (Django development server, fallback)
+    STORAGES["default"]["BACKEND"] = "django.core.files.storage.FileSystemStorage"
+    STORAGES["staticfiles"]["BACKEND"] = "django.contrib.staticfiles.storage.StaticFilesStorage"
+
+   
 
 # Set file upload permissions globally (applies to all storage types)
 FILE_UPLOAD_PERMISSIONS = 0o644  # Ensures uploaded files are readable by web server
