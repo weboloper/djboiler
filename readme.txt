@@ -1,3 +1,16 @@
+start python app
+edit passenger_wsgi
+from myapp.wsgi import application
+
+git init same directory with passenger_wsgi
+
+serve static & media
+s3
+ngnix (staticfiles/)
+whitenoise
+none(development server)
+
+run celery (db or redis)
 celery -A myapp beat --loglevel=info
 
 1. Project Setup:
