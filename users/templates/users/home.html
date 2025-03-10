@@ -1,9 +1,0 @@
-{% extends 'base.html' %}
-
-{% block content %}
-    {% if not user.is_authenticated %}
-    <a href="{% url 'users:login' %}">Login here</a>
-    {% else %}
-    <a href="{% url 'users:logout' %}">Logout here</a>
-    {% endif %}
-{% endblock %}
