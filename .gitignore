@@ -43,14 +43,11 @@ __src/
 # Virtual environment folder
 env/
 venv/
-<<<<<<< HEAD
 .env.local
 .env.prod
-=======
 .env.dev
 .env.prod
 .env.test
->>>>>>> origin/master
 .env.staging
 
 # IDE files (VSCode, PyCharm)
@@ -59,8 +56,6 @@ venv/
 
 # MacOS specific
 .DS_Store
-<<<<<<< HEAD
-=======
 
 
 #ngix
@@ -68,4 +63,3 @@ public/
 tmp
 stderr.log
 passenger_wsgi.py
->>>>>>> origin/master
