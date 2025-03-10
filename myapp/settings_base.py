@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 Django settings for myapp project.
 
@@ -19,7 +18,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Detect environment (default to 'local' if not set)
-ENVIRONMENT = os.getenv('DJANGO_ENV', 'local')
+ENVIRONMENT = os.getenv('DJANGO_ENV', 'dev')
 
 # Define env file path based on environment
 env_file =  f".env.{ENVIRONMENT}"
@@ -46,7 +45,7 @@ DEBUG = config('DEBUG')
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 # CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', cast=Csv())
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 # Application definition
 
@@ -67,7 +66,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     'core',
 
-    'users'
+    'accounts'
 ]
 
 MIDDLEWARE = [
@@ -104,25 +103,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'myapp.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': config('DB_ENGINE', default='django.db.backends.sqlite3'),
-        'NAME': config('DB_NAME', default=BASE_DIR / 'db.sqlite3'),
-        'USER': config('DB_USER', default=''),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST': config('DB_HOST', default=''),
-        'PORT': config('DB_PORT', default=''),
-    }
-}
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -170,7 +150,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
-STORAGE_BACKEND = config('STORAGE_BACKEND', default="local")
+STORAGE_BACKEND = config('STORAGE_BACKEND', default="whitenoise")
 STORAGES = {
     "default": {},  # Will be set dynamically
     "staticfiles": {},  # Will be set dynamically
@@ -258,128 +238,8 @@ SESSION_COOKIE_HTTPONLY = True
 
 
 
-# Default email backend setting
-DEFAULT_EMAIL_BACKEND = config('DEFAULT_EMAIL_BACKEND', default='smtp')
-
-# Email configuration based on the selected backend
-if DEFAULT_EMAIL_BACKEND == 'mailjet':
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = config('MAILJET_EMAIL_HOST', default='in-v3.mailjet.com')
-    EMAIL_PORT = config('MAILJET_EMAIL_PORT', 587)
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = config('MAILJET_API_KEY')
-    EMAIL_HOST_PASSWORD = config('MAILJET_SECRET_KEY')
-    EMAIL_USE_SSL = False
-    EMAIL_TIMEOUT = 30
-
-elif DEFAULT_EMAIL_BACKEND == 'mailgun':
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = config('MAILGUN_EMAIL_HOST', default='smtp.mailgun.org')
-    EMAIL_PORT = config('MAILGUN_EMAIL_PORT', 587)
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = config('MAILGUN_SMTP_LOGIN')
-    EMAIL_HOST_PASSWORD = config('MAILGUN_SMTP_PASSWORD')
-
-elif DEFAULT_EMAIL_BACKEND == 'smtp':
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = config('SMTP_EMAIL_HOST', default='smtp.gmail.com')
-    EMAIL_PORT = config('SMTP_EMAIL_PORT', 587)
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = config('SMTP_EMAIL_USER')
-    EMAIL_HOST_PASSWORD = config('SMTP_EMAIL_PASSWORD')
-
-elif DEFAULT_EMAIL_BACKEND == 'console':
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-else:
-    raise ValueError(f"Unsupported email backend: {DEFAULT_EMAIL_BACKEND}")
+ 
 
 
 
 
-
-
-# Auto-reconnect on startup
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-
-# Adjust settings based on DEBUG
-if DEBUG:
-    # Development settings (run tasks locally, no need for concurrency)
-    CELERY_BROKER_URL="sqla+sqlite:///celerydb.sqlite3"
-    CELERY_RESULT_BACKEND="django-db"
-    CELERY_TASK_ALWAYS_EAGER = True  # Runs tasks locally
-    CELERYD_POOL = 'solo'  # For Windows, avoids multiprocessing (development only)
-else:
-    # Production settings (tasks are processed asynchronously in the background)
-    CELERY_BROKER_URL= config("CELERY_BROKER_REDIS_URL", default="redis://localhost:6379")
-    CELERY_RESULT_BACKEND= config("CELERY_BROKER_REDIS_URL", default="redis://localhost:6379")
-    CELERY_TASK_ALWAYS_EAGER = False  # Tasks run asynchronously
-    CELERYD_POOL = 'prefork'  # Default pool for production (can handle concurrency)
-    
-    # Optionally, configure Celery Beat (task scheduler) in production
-    CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
-
-
-
-
-
-
-
-
-
-
-
-# Allow scripts and styles only from the same origin and specific sources
-CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = ("'self'", "cdnjs.cloudflare.com", "'unsafe-inline'")  # Allow inline scripts cautiously
-CSP_STYLE_SRC = ("'self'", "fonts.googleapis.com", "'unsafe-inline'")  # Allow inline styles cautiously
-CSP_IMG_SRC = ("'self'", "data:", "cdn.example.com")  # Allow images from your domain and CDNs
-CSP_FONT_SRC = ("'self'", "fonts.gstatic.com")
-CSP_CONNECT_SRC = ("'self'", "api.example.com")  # Allow AJAX/WS connections to this domain
-CSP_FRAME_SRC = ("'none'",)  # Disallow embedding in iframes
-CSP_OBJECT_SRC = ("'none'",)  # Disallow Flash and other embedded objects
-CSP_MEDIA_SRC = ("'self'",)
-
-
-# Allow Alpine.js & HTMX if using them
-CSP_SCRIPT_SRC += ("'unsafe-eval'",)  # Required for Alpine.js dynamic features
-CSP_REPORT_URI = "/csp-report/"  # Endpoint to capture CSP violation reports
-
-
-if not DEBUG:
-    # Enforce HTTPS connections
-    SECURE_SSL_REDIRECT = True  # Redirect all HTTP traffic to HTTPS
-    SECURE_HSTS_SECONDS = 31536000  # Enable HSTS for one year (recommended)
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Apply HSTS to subdomains
-    SECURE_HSTS_PRELOAD = True  # Allow browser preload list (optional)
-
-    # Prevent MIME-type sniffing
-    SECURE_CONTENT_TYPE_NOSNIFF = True  
-
-    # Prevent clickjacking attacks
-    X_FRAME_OPTIONS = "DENY"  # Options: DENY, SAMEORIGIN
-
-    # Enable browser XSS protection
-    SECURE_BROWSER_XSS_FILTER = True  
-
-    # Referrer Policy
-    SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"  
-
-    # Permissions Policy (limits access to browser features)
-    PERMISSIONS_POLICY = {
-        "geolocation": "self",
-        "microphone": "none",
-        "camera": "none",
-        "fullscreen": "self",
-    }
-=======
-import os
-
-# Set the default to 'dev' in case the environment variable is not set
-ENVIRONMENT = os.getenv('DJANGO_ENV', 'dev')
-
-if ENVIRONMENT == 'prod':
-    from .settings_prod import *
-else:
-    from .settings_dev import *
->>>>>>> origin/master
