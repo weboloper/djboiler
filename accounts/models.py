@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from django.core.exceptions import ValidationError
 from .utils import validate_alphanumeric_username
+from django_sqids import SqidsField
 
 class MyUserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -20,6 +21,7 @@ class MyUserManager(BaseUserManager):
         return self.create_user(email, username, password, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin):
+    sqid = SqidsField(real_field_name="id")
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=30, unique=True, validators=[validate_alphanumeric_username],db_index=True)
     first_name = models.CharField(max_length=30, blank=True)
