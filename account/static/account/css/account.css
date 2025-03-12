@@ -1,0 +1,49 @@
+.container {
+    max-width: 720px;
+    margin:2rem 0
+}
+.wrapper {
+    background-image: url('/static/account/img/auth-layout-bg.jpg');
+    background-position: right center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    position: relative;
+    overflow: hidden;
+    background-size:cover;
+    min-width: 330px;
+ }
+
+.google_logo {
+    width: 18px;
+    height: 18px;
+    top: -2px;
+    margin-right: 10px;
+    position: relative;
+}
+
+.separator_line {
+    display: flex;
+    width: 100%;
+    -webkit-box-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    align-items: center;
+    text-align: center;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 25px 0px 30px;
+}
+.separator_line:before {
+    content: "";
+    border-top: 2px solid rgba(0, 0, 0, .1);
+    margin: 0 15px 0 0;
+    flex: 1 0 20px;
+}
+
+.separator_line::after {
+    content: "";
+    border-top: 2px solid rgba(0, 0, 0, .1);
+    margin: 0 0 0 15px;
+    flex: 1 0 20px;
+}

@@ -2,58 +2,55 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 from celery import shared_task
-from django.conf import settings
+
 
 @shared_task
 def send_test_email_task():
-    subject = 'Celery with Redis Test Email'
+    subject = 'Celery ile Redis Test E-Postası'
     to = ['weboloper@gmail.com']
-    from_email = settings.DEFAULT_FROM_EMAIL
 
-    # Render the email template
+    # E-posta şablonunu render et
     message = render_to_string('accounts/emails/test_email.html', {
-        'username': 'Celery Test User',
+        'username': 'Celery Test Kullanıcısı',
     })
 
-    # Create and send the email
-    email = EmailMessage(subject, message, from_email, to)
-    email.content_subtype = 'html'  # Use HTML content type for the email
+    # E-posta oluştur ve gönder
+    email = EmailMessage(subject, message, settings.DEFAULT_FROM_EMAIL, to)
+    email.content_subtype = 'html'  # HTML içerik tipi
     email.send()
 
 @shared_task
-def send_verification_email(app_url, username, email, token, uid):
-    subject = 'Email Verification'
+def send_verification_email(username, email, token, uid):
+    subject = 'E-Posta Doğrulama'
     to = [email]
-    from_email = settings.DEFAULT_FROM_EMAIL
 
-    verification_url = f"{app_url}/email-verification-confirm/{uid}/{token}/"
+    verification_url = f"{settings.FRONTEND_URL}/email-verification-confirm/{uid}/{token}/"
     
-    # Render the email template
+    # E-posta şablonunu render et
     message = render_to_string('accounts/emails/email_verification.html', {
         'username':  username,
         'url':  verification_url,
     })
 
-    # Create and send the email
-    email = EmailMessage(subject, message, from_email, to)
-    email.content_subtype = 'html'  # Use HTML content type for the email
+    # E-posta oluştur ve gönder
+    email = EmailMessage(subject, message, settings.DEFAULT_FROM_EMAIL, to)
+    email.content_subtype = 'html'  # HTML içerik tipi
     email.send()
 
 @shared_task
-def send_request_password_email(app_url, username, email, token, uid):
-    subject = 'Reset Password'
+def send_request_password_email(username, email, token, uid):
+    subject = 'Şifre Sıfırlama'
     to = [email]
-    from_email = settings.DEFAULT_FROM_EMAIL
 
-    reset_url = f"{app_url}/password-reset/{uid}/{token}/"
+    reset_url = f"{settings.FRONTEND_URL}/password-reset/{uid}/{token}/"
     
-    # Render the email template
+    # E-posta şablonunu render et
     message = render_to_string('accounts/emails/reset_password_email.html', {
         'username':  username,
         'url':  reset_url,
     })
 
-    # Create and send the email
-    email = EmailMessage(subject, message, from_email, to)
-    email.content_subtype = 'html'  # Use HTML content type for the email
+    # E-posta oluştur ve gönder
+    email = EmailMessage(subject, message, settings.DEFAULT_FROM_EMAIL, to)
+    email.content_subtype = 'html'  # HTML içerik tipi
     email.send()

@@ -1,0 +1,24 @@
+{% extends 'account/welcome/layout_welcome.html' %}
+{% load static %}
+
+{% block title %}Login | My Django App{% endblock %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div class="">
+    <h1 class="h2 mb-4">Cilt tipinizi bulduk</h1>
+    <h2 class="h1">Normal</h2>
+    <h3 class="h5">Bu ne demek oluyor?</h3>
+    <p>Cilt tipinize göre ürün önerileri sunabileceğiz</p>
+    <div class="d-grid gap-2 mt-2">
+        <a class="btn btn-primary" href="{% url 'home' %}">Artık başlayabilirsin</a>
+    </div>
+</div>
+     
+{% endblock %}
+
+
+{% block scripts %}
+{% endblock %}

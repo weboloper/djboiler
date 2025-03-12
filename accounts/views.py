@@ -3,6 +3,9 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
 from django.contrib.auth import logout
 from django.contrib import messages
+from .forms import CustomRegistrationForm
+from .utils import generate_token_and_uid
+from .emails import send_verification_email
 
 # from django.contrib.auth.decorators import user_passes_test
 # def is_admin(user):
@@ -46,3 +49,20 @@ def logout_view(request):
     """
     logout(request)  # End the user session
     return redirect('accounts:home')  # Redirect to the homepage or any other page
+
+def register_view(request):
+    if request.method == 'POST':
+        form = CustomRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Generate token and UID
+            token, uid = generate_token_and_uid(user)
+            send_verification_email.delay(user.username, user.email, token, uid )
+            messages.success(request, 'Account created successfully.')
+            return redirect('accounts:login')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = CustomRegistrationForm()
+
+    return render(request, 'accounts/register.html', {'form': form})
