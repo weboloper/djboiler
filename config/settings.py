@@ -252,12 +252,14 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
 
 # Production settings 
-CELERY_BROKER_URL= config("CELERY_BROKER_REDIS_URL", default="sqla+sqlite:///celerydb.sqlite3")
+
 CELERY_RESULT_BACKEND="django-db"
 if DEBUG:
+    CELERY_BROKER_URL="sqla+sqlite:///celerydb.sqlite3"
     CELERY_TASK_ALWAYS_EAGER = True  # Run tasks synchronously in development
     CELERYD_POOL = 'solo'
 else:
+    CELERY_BROKER_URL= config("CELERY_BROKER_REDIS_URL", default="redis://localhost:6379")
     CELERY_TASK_ALWAYS_EAGER = False  # Run tasks asynchronously in production
     CELERYD_POOL = 'prefork'
 
@@ -328,3 +330,6 @@ if not DEBUG and ENVIRONMENT != 'dev':
 # Misc settings / Just to keep sqids same / Not sensitive data
 DJANGO_SQIDS_MIN_LENGTH=4
 DJANGO_SQIDS_ALPHABET="gmjqnhr6py1viw87s0uk9oczx4dt5blaf3e2"
+
+from django.urls import reverse_lazy
+LOGIN_URL = reverse_lazy('accounts:login')

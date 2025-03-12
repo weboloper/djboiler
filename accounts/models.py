@@ -29,11 +29,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
+    email_verified = models.BooleanField(default=True)
 
     objects = MyUserManager()
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email']
 
     # Add related_name to avoid clashes
     # Agroups = models.ManyToManyField(
@@ -50,6 +51,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+
+class EmailChangeRequest(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    new_email = models.EmailField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    confirmed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Email change request for {self.user.username}"
 
 # Profile model extending Account
 class Profile(models.Model):

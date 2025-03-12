@@ -9,7 +9,7 @@ from ..api.serializers import (
 )
 from django.conf import settings
 from django.utils.http import  urlsafe_base64_decode
-from ..emails import send_verification_email, send_request_password_email
+from ..emails import verification_email, password_reset_email
 from django.utils.encoding import force_str
 from ..models import User, Profile
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -22,6 +22,7 @@ import requests
 from django.utils.crypto import get_random_string
 from io import BytesIO
 from PIL import Image
+from core.email_handler import send_email
 
 class CurrentUserAPIView(APIView):
     serializer_class = UserSerializer
@@ -55,8 +56,9 @@ class RegisterAPIView(APIView):
             if not settings.VERIFIED_ON_REGISTER:
                 app_url = settings.FRONTEND_URL
                 token, uid= generate_token_and_uid(user)
-                if not settings.DEBUG:
-                    send_verification_email.delay(app_url, user.username, user.email, token, uid )                    
+
+                if not user.email_verified:
+                    send_email(verification_email, user.username, user.email, token, uid)              
 
                 data = serializer.data
                 data["token"] = token
@@ -105,9 +107,9 @@ class EmailVerificationRequestAPIView(APIView):
                 return Response({'detail': 'E-posta doğrulanmış durumda.'}, status=status.HTTP_400_BAD_REQUEST)
             app_url = settings.FRONTEND_URL
             token, uid = generate_token_and_uid(user)
-            if settings.DEBUG:
-                return Response({'token': token,  "uid": uid}, status=status.HTTP_200_OK)
-            send_verification_email.delay(app_url,user.username, user.email, token, uid )
+ 
+            send_email(verification_email, user.username, user.email, token, uid)
+            return Response({'message': 'Epostanıza gönderildi.'}, status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
             return Response({'detail': 'Böyle bi hesap yok.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -121,9 +123,9 @@ class ResetPasswordRequestAPIView(APIView):
             app_url = settings.FRONTEND_URL
             user = User.objects.get(email=request.data.get("email"))            
             token, uid = generate_token_and_uid(user)
-            if settings.DEBUG:
-                return Response({'token': token,  "uid": uid}, status=status.HTTP_200_OK)
-            send_request_password_email.delay(app_url, user.username, user.email, token, uid )
+ 
+
+            send_email(password_reset_email, user.username, user.email, token, uid)
             return Response({'message': 'Epostanıza gönderildi.'}, status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
