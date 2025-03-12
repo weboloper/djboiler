@@ -15,3 +15,4 @@ def generate_token_and_uid(user):
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     return token, uid
+

@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "django_celery_beat",
     "django_celery_results",
+    "csp",
     'storages',
     'corsheaders',
     'django_filters',
@@ -253,20 +254,21 @@ CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
 
 # Production settings 
 
-CELERY_RESULT_BACKEND="django-db"
-if DEBUG:
-    CELERY_BROKER_URL="sqla+sqlite:///celerydb.sqlite3"
-    CELERY_TASK_ALWAYS_EAGER = True  # Run tasks synchronously in development
-    CELERYD_POOL = 'solo'
-else:
+
+if config('CELERY_BROKER') == "redis":
+    CELERY_RESULT_BACKEND="django-db"
     CELERY_BROKER_URL= config("CELERY_BROKER_REDIS_URL", default="redis://localhost:6379")
     CELERY_TASK_ALWAYS_EAGER = False  # Run tasks asynchronously in production
     CELERYD_POOL = 'prefork'
-
-
-if DEBUG:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 else:
+    CELERY_RESULT_BACKEND="django-db"
+    CELERY_BROKER_URL="sqla+sqlite:///celerydb.sqlite3"
+    CELERY_TASK_ALWAYS_EAGER = True  # Run tasks synchronously in development
+    CELERYD_POOL = 'solo'
+    
+
+
+if config('EMAIL_BACKEND') == "smtp":
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
     EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=False, cast=bool)  # Optional
@@ -275,6 +277,8 @@ else:
     EMAIL_HOST_USER = config('SMTP_EMAIL_USER')
     EMAIL_HOST_PASSWORD = config('SMTP_EMAIL_PASSWORD')
     DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default="webmaster@example.com")
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 if not DEBUG and ENVIRONMENT != 'dev':
@@ -310,21 +314,42 @@ if not DEBUG and ENVIRONMENT != 'dev':
         }
 
 
-    # Allow scripts and styles only from the same origin and specific sources
-    CSP_DEFAULT_SRC = ("'self'",)
-    CSP_SCRIPT_SRC = ("'self'", "cdnjs.cloudflare.com", "'unsafe-inline'")  # Allow inline scripts cautiously
-    CSP_STYLE_SRC = ("'self'", "fonts.googleapis.com", "'unsafe-inline'")  # Allow inline styles cautiously
-    CSP_IMG_SRC = ("'self'", "data:", "cdn.example.com")  # Allow images from your domain and CDNs
-    CSP_FONT_SRC = ("'self'", "fonts.gstatic.com")
-    CSP_CONNECT_SRC = ("'self'", "api.example.com")  # Allow AJAX/WS connections to this domain
-    CSP_FRAME_SRC = ("'none'",)  # Disallow embedding in iframes
-    CSP_OBJECT_SRC = ("'none'",)  # Disallow Flash and other embedded objects
-    CSP_MEDIA_SRC = ("'self'",)
+# Allow scripts and styles only from the same origin and specific sources
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = (
+    "'self'", 
+    "cdnjs.cloudflare.com", 
+    "https://accounts.google.com", 
+    "https://apis.google.com", 
+    "https://www.gstatic.com", 
+    "'unsafe-inline'",  # Allow inline scripts, cautiously
+)
+CSP_STYLE_SRC = (
+    "'self'", 
+    "fonts.googleapis.com", 
+    "https://accounts.google.com/gsi/style", 
+    "'unsafe-inline'",  # Allow inline styles cautiously
+)
+CSP_IMG_SRC = ("'self'", "data:", "https://www.gstatic.com")  # Allow images from your domain and Google
+CSP_FONT_SRC = (
+    "'self'", 
+    "fonts.gstatic.com", 
+    "https://fonts.gstatic.com", 
+)
+CSP_CONNECT_SRC = (
+    "'self'",
+    "https://csp.withgoogle.com",  # Allow Google sign-in API sources
+    "https://accounts.google.com",
+    "https://accounts.google.com/gsi/",
+    "https://apis.google.com",
+)
+CSP_FRAME_SRC = ("'none'","https://accounts.google.com/gsi/")  # Disallow embedding in iframes
+CSP_OBJECT_SRC = ("'none'", "https://accounts.google.com/gsi/")  # Disallow Flash and other embedded objects
+CSP_MEDIA_SRC = ("'self'",)
 
-
-    # Allow Alpine.js & HTMX if using them
-    CSP_SCRIPT_SRC += ("'unsafe-eval'",)  # Required for Alpine.js dynamic features
-    CSP_REPORT_URI = "/csp-report/"  # Endpoint to capture CSP violation reports
+# Allow Alpine.js & HTMX if using them
+CSP_SCRIPT_SRC += ("'unsafe-eval'",)  # Required for Alpine.js dynamic features
+# CSP_REPORT_URI = "/csp-report/"  # Endpoint to capture CSP violation reports
 
 
 # Misc settings / Just to keep sqids same / Not sensitive data
@@ -333,3 +358,12 @@ DJANGO_SQIDS_ALPHABET="gmjqnhr6py1viw87s0uk9oczx4dt5blaf3e2"
 
 from django.urls import reverse_lazy
 LOGIN_URL = reverse_lazy('accounts:login')
+
+# GOOGLE SOCIAL LOGIN SETTINGS
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET')
+
+GOOGLE_OAUTH_CLIENT_ID  = config('GOOGLE_CLIENT_ID')
+# We need these lines below to allow the Google sign in popup to work.
+SECURE_REFERRER_POLICY = 'no-referrer-when-downgrade'
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"

@@ -19,4 +19,6 @@ urlpatterns = [
     path('email-verification-confirm/<uidb64>/<token>/', views.email_verify_view, name='email_verify_confirm'),
 
     path('api/', include('accounts.api.urls')),
+
+    path('auth-receiver', views.auth_receiver, name='auth_receiver'),
 ]

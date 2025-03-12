@@ -17,5 +17,25 @@
         </form>
         <p>Don't have an account? <a href="{% url 'accounts:register' %}">Register here</a></p>
         <p>Forgot password? <a href="{% url 'accounts:password_reset_request' %}">Reset password</a>
+
+        <div>
+            <div id="g_id_onload"
+                data-client_id="852146673544-dualchlpk3e543ae1enkces3cumpga8k.apps.googleusercontent.com"
+                data-context="signin"
+                data-ux_mode="popup"
+                data-login_uri="{{ auth_receiver_url }}"
+                data-auto_prompt="false">
+            </div>
+            
+            <div class="g_id_signin"
+                data-type="standard"
+                data-shape="rectangular"
+                data-theme="outline"
+                data-text="continue_with"
+                data-size="large"
+                data-logo_alignment="left">
+            </div>
+        </div>
+
     </div>
 {% endblock %}

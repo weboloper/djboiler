@@ -1,0 +1,15 @@
+django
+python-decouple
+whitenoise
+django-celery
+django-celery-beat
+django-celery-results
+django-csp
+django-storages
+django-cors-headers
+djangorestframework
+djangorestframework-simplejwt
+django-filter
+django-sqids
+google-api-python-client
+pillow
