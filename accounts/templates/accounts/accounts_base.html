@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Account - {{ block.super }}</title>
+    <script src="https://accounts.google.com/gsi/client" async></script>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://accounts.google.com https://apis.google.com https://www.gstatic.com;">
+
+{% endblock %}
+
+{% block content %}
+    <div>
+
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% block account_content %}{% endblock %}
+    </div>
+{% endblock %}

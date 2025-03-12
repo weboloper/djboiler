@@ -1,0 +1,39 @@
+{% extends 'account/welcome/layout_welcome.html' %}
+{% load static %}
+
+{% block title %}Login | My Django App{% endblock %}
+
+{% block head %}
+<style>
+    input { margin-top:4px; margin-right:10px}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="">
+    <h1 class="h2 mb-4">Cilt konusunda beklentileriniz neler?</h1>
+    <div class="d-flex flex-column" data-toggle="buttons">
+        <label class="btn btn-secondary text-start mb-2">
+          <input type="checkbox">Aknelerden kurtulmak
+        </label>
+        <label class="btn btn-secondary text-start  mb-2">
+          <input type="checkbox">Siyah noktalardan kurtulmak 
+        </label>
+        <label class="btn btn-secondary text-start  mb-2">
+          <input type="checkbox">Donukluktan kurtulmak
+        </label>
+        <label class="btn btn-secondary text-start  mb-2">
+            <input type="checkbox">Gözenekleri küçültmek
+          </label>
+    </div>
+
+    <div class="d-grid gap-2 mt-5">
+        <a class="btn btn-primary" href="{% url 'account:welcome_quiz' %}">Devam</a>
+    </div>
+</div>
+     
+{% endblock %}
+
+
+{% block scripts %}
+{% endblock %}

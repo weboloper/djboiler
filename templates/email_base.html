@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Django Project{% endblock %}</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }
+        .header { background-color: #4CAF50; padding: 20px; text-align: center; color: white; }
+        .content { padding: 20px; font-size: 16px; color: #333333; }
+        .footer { text-align: center; font-size: 12px; color: #777777; padding: 10px; background-color: #f4f4f4; }
+        .button { display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; }
+    </style>
+    {% block head %}
+    <!-- Additional head content like CSS links, JS files can go here -->
+    {% endblock %}
+</head>
+<body>
+    <div class="container">
+        {% block content %}
+        <!-- Content will be inserted here from child templates -->
+        {% endblock %}
+        <div class="footer">
+            <p>&copy; 2025 Örnek Şirket. Tüm hakları saklıdır.</p>
+        </div>
+    </div>
+</body>
+</html>

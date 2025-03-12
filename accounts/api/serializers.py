@@ -17,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'email', 'username', 'first_name', 'last_name', 'date_joined', 
-                  'is_active', 'is_verified', 'is_staff', 'profile')  # Customize this list as needed
+                  'is_active', 'email_verified', 'is_staff', 'profile')  # Customize this list as needed
 
     # Optionally, if you want to add custom validation or additional behavior
     def validate_email(self, value):
@@ -42,7 +42,7 @@ class UserSerializer(serializers.ModelSerializer):
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.is_active = validated_data.get('is_active', instance.is_active)
-        instance.is_verified = validated_data.get('is_verified', instance.is_verified)
+        instance.email_verified = validated_data.get('email_verified', instance.email_verified)
         instance.is_staff = validated_data.get('is_staff', instance.is_staff)
         instance.save()
         return instance
@@ -65,17 +65,17 @@ class RegisterSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True, validators=[validate_alphanumeric_username])
     email = serializers.EmailField(required=True)
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password] )
-    re_password = serializers.CharField(write_only=True, required=True)
+    password_confirmation = serializers.CharField(write_only=True, required=True)
     
     class Meta:
         model = User
-        fields = ['email', 'username', 'first_name', 'last_name', 'password', 're_password']
+        fields = ['email', 'username', 'first_name', 'last_name', 'password', 'password_confirmation']
     
     def validate(self, data):
         """
-        Check that the password and re_password match.
+        Check that the password and password_confirmation match.
         """
-        if data['password'] != data['re_password']:
+        if data['password'] != data['password_confirmation']:
             raise serializers.ValidationError("Şifreler uyuşmuyor.")
         return data
 
@@ -104,7 +104,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         Create the user and also create an associated Profile.
         """
         # Remove the re_password as it’s not needed for the user creation
-        validated_data.pop('re_password')
+        validated_data.pop('password_confirmation')
 
         # Create the user
         user = User.objects.create_user(**validated_data)  # This ensures password is hashed

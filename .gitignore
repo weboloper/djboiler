@@ -45,7 +45,7 @@ env/
 venv/
 .env.local
 .env.prod
-.env.dev
+# .env.dev
 .env.prod
 .env.test
 .env.staging

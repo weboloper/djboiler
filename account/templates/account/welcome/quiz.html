@@ -1,0 +1,25 @@
+{% extends 'account/welcome/layout_welcome.html' %}
+{% load static %}
+
+{% block title %}Login | My Django App{% endblock %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div class="">
+    <h1 class="h2 mb-4">Cilt tipinizi bulalım</h1>
+    <p>Cilt tipi seçiminiz size ürün tavsiyelerimizde bize yardımcı olacak</p>
+    <div class="d-grid gap-2 mt-5">
+        <a class="btn btn-secondary" href="{% url 'account:welcome_quiz1' %}">Cilt tipimi biliyorum</a>
+    </div>
+    <div class="d-grid gap-2 mt-2">
+        <a class="btn btn-primary" href="{% url 'account:welcome_quiz1' %}">Haydi beraber bulalım</a>
+    </div>
+</div>
+     
+{% endblock %}
+
+
+{% block scripts %}
+{% endblock %}
