@@ -5,13 +5,15 @@ from rest_framework import status
 from ..api.serializers import (
     UserSerializer,
     RegisterSerializer, 
-    PasswordResetConfirmSerializer
+    PasswordResetConfirmSerializer,
+    ChangePasswordSerializer,
+    EmailChangeRequestSerializer
 )
 from django.conf import settings
 from django.utils.http import  urlsafe_base64_decode
-from ..emails import verification_email, password_reset_email
+from ..emails import verification_email, password_reset_email, change_email_email
 from django.utils.encoding import force_str
-from ..models import User, Profile
+from ..models import User, Profile, EmailChangeRequest
 from rest_framework_simplejwt.tokens import RefreshToken
 from ..utils import generate_token_and_uid
 from django.contrib.auth.tokens import default_token_generator
@@ -23,6 +25,10 @@ from django.utils.crypto import get_random_string
 from io import BytesIO
 from PIL import Image
 from core.email_handler import send_email
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import update_session_auth_hash
+from django.shortcuts import get_object_or_404
+from urllib.parse import urlencode
 
 # from drf_yasg.utils import swagger_auto_schema
 # from drf_yasg import openapi
@@ -31,80 +37,45 @@ class CurrentUserAPIView(APIView):
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
-    def get_object(self):
-        return self.request.user
-    
-    def get(self, request,  format=None):
-        user = self.get_object()
-        serializer = UserSerializer(user,context={"request": request})
+    def get(self, request, format=None):
+        serializer = UserSerializer(request.user, context={"request": request})
         return Response(serializer.data)
-    
-    # def put(self, request, *args, **kwargs):
-    #     user = self.get_object()
 
-    #     serializer = UserSerializer(user, data=request.data , partial=True)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
 class RegisterAPIView(APIView):
     permission_classes = (permissions.AllowAny,)
 
-    # @swagger_auto_schema(
-    #     operation_description="Kullanıcı kayıt endpointi",
-    #     request_body=RegisterSerializer,
-    #     tags=["accounts"],
-    #     responses={
-    #         201: openapi.Response(
-    #             description="Başarılı Kayıt",
-    #             examples={
-    #                 "application/json": {
-    #                     "id": 1,
-    #                     "username": "testuser",
-    #                     "email": "test@example.com",
-    #                     "first_name": "",
-    #                     "last_name":""
-    #                 }
-    #             }
-    #         ),
-    #         400: openapi.Response(description="Geçersiz giriş verileri"),
-    #     },
-    # )
-    
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            token, uid= generate_token_and_uid(user)
             if not user.email_verified:
-                send_email(verification_email, user.username, user.email, token, uid)              
-
-            data = serializer.data
-            # data["token"] = token
-            # data["uid"] = uid
-                
-            return Response( data , status=status.HTTP_201_CREATED)
-        return Response( serializer.errors  , status=status.HTTP_400_BAD_REQUEST)
+                token, uid = generate_token_and_uid(user)
+                send_email(verification_email, user.username, user.email, token, uid)
+            return Response({
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "message": "Kayıt başarılı!"
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EmailVerificationRequestAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
-        user = request.user  # Use the authenticated user
-
+        user = request.user
         if user.email_verified:
             return Response({'detail': 'E-posta doğrulanmış durumda.'}, status=status.HTTP_400_BAD_REQUEST)
 
         token, uid = generate_token_and_uid(user)
-
         send_email(verification_email, user.username, user.email, token, uid)
 
+        response_data = {'message': 'E-postanıza gönderildi.'}
         if settings.ENVIRONMENT == 'dev':
-            return Response({'message': 'Epostanıza gönderildi.' , 'token': token,  "uid": uid}, status=status.HTTP_200_OK)
-        return Response({'message': 'E-postanıza gönderildi.'}, status=status.HTTP_200_OK)
+            response_data.update({'token': token, 'uid': uid})
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class EmailVerificationConfirmAPIView(APIView):
@@ -113,78 +84,138 @@ class EmailVerificationConfirmAPIView(APIView):
     def post(self, request, *args, **kwargs):
         uidb64 = kwargs.get('uidb64')
         token = kwargs.get('token')
-        
-        if uidb64 is None or token is None :
-            return Response({'detail': 'Doğrulama bağlantısı geçersiz. Lütfen tekrar deneyiniz.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not uidb64 or not token:
+            return Response({"detail": "Geçersiz eposta doğrulama bağlantısı."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
-            user = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError) as e:
-            return Response({'detail': 'Invalid token or UID.'}, status=status.HTTP_400_BAD_REQUEST)
+            user = get_object_or_404(User, pk=uid)
+        except (TypeError, ValueError, OverflowError):
+            return Response({"detail": "Geçersiz bağlantı."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if user is not None and default_token_generator.check_token(user, token):
+        if not default_token_generator.check_token(user, token):
+            return Response({"detail": "Geçersiz token."}, status=status.HTTP_400_BAD_REQUEST)
 
-            if user.email_verified:
-                return Response({'detail': 'E-posta doğrulanmış durumda.'}, status=status.HTTP_400_BAD_REQUEST)
-            user.email_verified = True
-            user.save()
-            return Response({'message': 'E-posta doğrulama başarıyla tamamlandı.'}, status=status.HTTP_200_OK)
-
-        else:
-            return Response({'detail': 'Doğrulama bağlantısı geçersiz. Lütfen tekrar deneyiniz.'}, status=status.HTTP_400_BAD_REQUEST)
+        if user.email_verified:
+            return Response({"detail": "E-posta zaten doğrulandı."}, status=status.HTTP_400_BAD_REQUEST)
         
+        user.email_verified = True
+        user.save()
+        return Response({"message": "E-posta doğrulama başarılı."}, status=status.HTTP_200_OK)
+
 
 class ResetPasswordRequestAPIView(APIView):
     permission_classes = (permissions.AllowAny,)
+
     def post(self, request):
+        user = get_object_or_404(User, email=request.data.get("email"))
+        token, uid = generate_token_and_uid(user)
+        send_email(password_reset_email, user.username, user.email, token, uid)
 
-        try:
-            user = User.objects.get(email=request.data.get("email"))            
-            token, uid = generate_token_and_uid(user)
- 
-            send_email(password_reset_email, user.username, user.email, token, uid)
-            if settings.ENVIRONMENT == 'dev':
-                return Response({'message': 'Epostanıza gönderildi.' , 'token': token,  "uid": uid}, status=status.HTTP_200_OK)
-            return Response({'message': 'Epostanıza gönderildi.'}, status=status.HTTP_200_OK)
-
-        except User.DoesNotExist:
-            return Response({'detail': 'Böyle bi hesap yok.'}, status=status.HTTP_400_BAD_REQUEST)
+        response_data = {'message': 'E-postanıza gönderildi.'}
+        if settings.ENVIRONMENT == 'dev':
+            response_data.update({'token': token, 'uid': uid})
         
- 
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
 class ResetPasswordConfirmAPIView(APIView):
     permission_classes = (permissions.AllowAny,)
+
     def post(self, request, *args, **kwargs):
         uidb64 = kwargs.get('uidb64')
         token = kwargs.get('token')
-        new_password1 = request.data.get('new_password1')
-        new_password2 = request.data.get('new_password2')
-        
-        if uidb64 is None or token is None:
-            return Response({'detail': 'Şifre hatırlatma bağlantısı geçersiz.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not uidb64 or not token:
+            return Response({"detail": "Geçersiz şifre sıfırlama bağlantısı."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
-            user = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            user = None
+            user = get_object_or_404(User, pk=uid)
+        except (TypeError, ValueError, OverflowError):
+            return Response({"detail": "Geçersiz bağlantı."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not default_token_generator.check_token(user, token):
+            return Response({"detail": "Token geçersiz veya süresi dolmuş."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if user is not None and default_token_generator.check_token(user, token):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        if serializer.is_valid():
+            user.set_password(serializer.validated_data["new_password1"])
+            user.save()
+            return Response({"message": "Şifreniz başarıyla değiştirildi."}, status=status.HTTP_200_OK)
 
-            serializer = PasswordResetConfirmSerializer(data=request.data)
-            if serializer.is_valid():
-                user.set_password(new_password1)
-                user.save()
-                return Response({'message': 'Şifreniz başarıyla değiştirildi.'}, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChangePasswordAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def put(self, request, *args, **kwargs):
+        serializer = ChangePasswordSerializer(data=request.data, context={"request": request})
+        
+        if serializer.is_valid():
+            request.user.set_password(serializer.validated_data["new_password1"])
+            request.user.save()
+            update_session_auth_hash(request, request.user)
+            return Response({"message": "Şifreniz başarıyla değiştirildi."}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class EmailChangeRequestView(APIView):
+    def post(self, request):
+        serializer = EmailChangeRequestSerializer(data=request.data, context={"request": request})
+        if serializer.is_valid():
+            user = request.user
+            new_email = serializer.validated_data["new_email"]
+
+            # Create a pending email change request
+            email_change_request, created = EmailChangeRequest.objects.get_or_create(user=user)
+            email_change_request.new_email = new_email
+            email_change_request.confirmed = False
+            email_change_request.save()
+
+            # Generate UID and token
+            token, uid = generate_token_and_uid(user)
+
+            send_email(change_email_email, user.username, new_email, token, uid)
+
+            response_data = {'message': 'E-postanıza gönderildi.'}
+            if settings.ENVIRONMENT == 'dev':
+                response_data.update({'token': token, 'uid': uid})
             
-        else:
-            return Response({'detail': 'Şifre hatırlatma bağlantısı geçersiz.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response_data, status=status.HTTP_200_OK)
+    
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class EmailChangeConfirmView(APIView):
+     permission_classes = (permissions.AllowAny,)
+     def post(self, request, *args, **kwargs):
+        uidb64 = kwargs.get('uidb64')
+        token = kwargs.get('token')
+        
+        if not uidb64 or not token:
+            return Response({"detail": "Geçersiz eposta doğrulama bağlantısı."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = get_object_or_404(User, pk=uid)
+        except (TypeError, ValueError, OverflowError):
+            return Response({"detail": "Geçersiz bağlantı."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not default_token_generator.check_token(user, token):
+            return Response({"detail": "Token geçersiz veya süresi dolmuş."}, status=status.HTTP_400_BAD_REQUEST)
 
+        email_request = EmailChangeRequest.objects.filter(user=user, confirmed=False).first()
+        if not email_request:
+            return Response({"error": "Geçersiz istek."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Update user email
+        user.email = email_request.new_email
+        user.save()
+        email_request.confirmed = True
+        email_request.save()
 
-
+        return Response({"message": "E-posta başarıyla güncellendi."}, status=status.HTTP_200_OK)
+    
 class GoogleAuth(APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -194,22 +225,24 @@ class GoogleAuth(APIView):
         google_oauth_url = "https://accounts.google.com/o/oauth2/auth"
         # redirect_uri = request.build_absolute_uri(reverse('google_auth_callback'))
         redirect_uri= app_url + "/api/google/auth"
+
         params = {
             'client_id': settings.GOOGLE_CLIENT_ID,
             'redirect_uri': redirect_uri,
             'response_type': 'code',
             'scope': 'email profile',
         }
-        redirect_url = google_oauth_url + '?' + '&'.join([f'{key}={value}' for key, value in params.items()])
+        redirect_url = f"{google_oauth_url}?{urlencode(params)}"
+        # redirect_url = google_oauth_url + '?' + '&'.join([f'{key}={value}' for key, value in params.items()])
         return redirect(redirect_url)
 
 
 def unique_username(username):
+    original_username = username
     counter = 1
-    while User.objects.filter(username=username):
-        username = username + str(counter)
+    while User.objects.filter(username=username).exists():
+        username = f"{original_username}{counter}"
         counter += 1
-        
     return username
 
 class GoogleAuthCallback(APIView):
@@ -222,7 +255,6 @@ class GoogleAuthCallback(APIView):
         if not code:
             return JsonResponse({'error': 'Authorization code not provided'}, status=status.HTTP_400_BAD_REQUEST)
 
-          
         # Exchange authorization code for access token
         # code = request.GET.get('code')
         if not code:
@@ -238,7 +270,7 @@ class GoogleAuthCallback(APIView):
             'redirect_uri': redirect_uri,
             'grant_type': 'authorization_code',
         }
-        response = requests.post(token_url, data=data)
+        response = requests.post(token_url, data=data, timeout=5)
 
         # After getting the response from the token exchange
         if response.status_code != 200:
@@ -249,7 +281,7 @@ class GoogleAuthCallback(APIView):
         # Get user info from Google API
         user_info_url = "https://www.googleapis.com/oauth2/v3/userinfo"
         headers = {'Authorization': f'Bearer {access_token}'}
-        user_info_response = requests.get(user_info_url, headers=headers)
+        user_info_response = requests.get(user_info_url, headers=headers, timeout=5)
         if user_info_response.status_code == 200:
             user_info = user_info_response.json()
             username = unique_username(user_info['email'].split('@')[0])
@@ -260,13 +292,11 @@ class GoogleAuthCallback(APIView):
                 # If user is created, set additional attributes
                 user.username=username
                 user.is_active=True
+                user.email_verified=True
                 # user.first_name = user_info.get('given_name', '')
                 # user.last_name = user_info.get('family_name', '')
-                # user.is_verified = True
                 user.save()
-            # if not user.is_verified:
-            #     user.is_verified = True
-            #     user.save()
+
             # Fetch user's profile image from Google
             profile_image_url = user_info.get('picture')
             if profile_image_url:
@@ -299,7 +329,9 @@ class GoogleAuthCallback(APIView):
             # Prepare response JSON
             response_data = {
                 "access": access,
-                "refresh": str(refresh)
+                "refresh": str(refresh),
+                "username": user.username,
+                "email": user.email,
             }
             
             # Return tokens in JSON response

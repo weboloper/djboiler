@@ -1,8 +1,8 @@
 from django.shortcuts import render
-from django.contrib.auth import authenticate, login , logout, get_user_model
+from django.contrib.auth import authenticate, login , logout, get_user_model,update_session_auth_hash
 from django.shortcuts import redirect
 from django.contrib import messages
-from .forms import CustomRegistrationForm, CustomPasswordResetForm, CustomEmailChangeForm
+from .forms import CustomRegistrationForm, CustomPasswordResetForm, CustomEmailChangeForm,CustomPasswordChangeForm
 from .utils import generate_token_and_uid
 from .emails import verification_email, test_email , password_reset_email , change_email_email
 from core.email_handler import send_email
@@ -140,6 +140,26 @@ def password_reset_confirm_view(request, uidb64, token):
         return redirect('accounts:password_reset_request')
         
 
+@login_required
+def password_change_view(request):
+    if request.method == "POST":
+        form = CustomPasswordChangeForm(request.POST, user=request.user)
+        if form.is_valid():
+            new_password = form.cleaned_data["new_password1"]
+            request.user.set_password(new_password)
+            request.user.save()
+            update_session_auth_hash(request, request.user)  # Keep user logged in
+
+            messages.success(request, "Şifreniz başarıyla değiştirildi.")
+            return redirect("core:home")
+        else:
+            messages.error(request, 'Lütfen aşağıdaki hataları düzeltin.')
+    else:
+        form = CustomPasswordChangeForm()
+
+    return render(request, "accounts/password_change.html", {"form": form})
+        
+
 
 def email_verify_view(request):
     try:
@@ -222,29 +242,24 @@ def email_change_confirm_view(request, uidb64, token):
         uid = urlsafe_base64_decode(uidb64).decode()
         email_change_request = EmailChangeRequest.objects.get(user=uid)
 
-        # Ensure the request is for the current user and is not yet confirmed
-        if email_change_request.user == request.user and not email_change_request.confirmed:
-            # Validate the token
-            if default_token_generator.check_token(email_change_request.user, token):
-                # Update the user's email address with the new one
-                user = email_change_request.user
-                user.email = email_change_request.new_email
-                user.save()
 
-                # Mark the request as confirmed
-                email_change_request.confirmed = True
-                email_change_request.save()
+        # Validate the token
+        if default_token_generator.check_token(email_change_request.user, token):
+            # Update the user's email address with the new one
+            user = email_change_request.user
+            user.email = email_change_request.new_email
+            user.save()
 
-                messages.success(request, "Epostanız başarıyla değiştirildi.")
-                return redirect('core:home')
+            # Mark the request as confirmed
+            email_change_request.confirmed = True
+            email_change_request.save()
 
-            else:
-                messages.error(request, "Link hatalı veya süresi geçmiş.")
-                return redirect('accounts:login')
+            messages.success(request, "Epostanız başarıyla değiştirildi.")
+            return redirect('core:home')
 
         else:
-            messages.error(request, "Eposta değişikliği talebinde hata var veya zaten değiştirildi")
-            return redirect('core:home')
+            messages.error(request, "Link hatalı veya süresi geçmiş.")
+            return redirect('accounts:login')
 
     except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
         messages.error(request, "Link hatalı veya süresi geçmiş.")

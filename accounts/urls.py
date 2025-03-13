@@ -14,6 +14,7 @@ urlpatterns = [
         # password urls
         path('password-reset/', views.password_reset_request_view, name='password_reset_request'),
         path('password-reset/<uidb64>/<token>/', views.password_reset_confirm_view, name='password_reset_confirm'),
+        path('password-change/', views.password_change_view, name='password_change'),
 
         # email urls
         path('email-change/', views.email_change_view, name='email_change_request'),
