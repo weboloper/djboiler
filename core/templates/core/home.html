@@ -4,6 +4,10 @@
     {% if not user.is_authenticated %}
     <a href="{% url 'accounts:login' %}">Login here</a>
     {% else %}
+
+    {% if not user.email_verified %}
+    <a href="{% url 'accounts:email_change_request' %}">Request verify email</a>
+    {% endif %}
     <a href="{% url 'accounts:email_change_request' %}">Change email</a>
     <a href="{% url 'accounts:logout' %}">Logout here</a>
     {% endif %}

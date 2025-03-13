@@ -3,21 +3,29 @@ from ..models import User, Profile
 from ..utils import validate_alphanumeric_username
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import password_validation
+from core.serializers import BaseSerializer
 
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(BaseSerializer):
     class Meta:
         model = Profile
-        fields = ('id', 'user', 'avatar', 'bio', 'twitter', 'instagram', 'facebook', 'pinterest')
+        exclude =['user']
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(BaseSerializer):
     # If you want to include the profile data in the user serializer
     profile = ProfileSerializer(read_only=True)
 
+    custom_field = serializers.SerializerMethodField()
+    
+    def get_custom_field(self, obj):
+        # This method will return the value for 'custom_field'
+        return "hello"
+
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'date_joined', 
-                  'is_active', 'email_verified', 'is_staff', 'profile')  # Customize this list as needed
+        exclude =['password']
+        # fields = ('sqid', 'email', 'username', 'first_name', 'last_name', 'date_joined', 
+        #           'is_active', 'email_verified', 'is_staff', 'profile')  # Customize this list as needed
 
     # Optionally, if you want to add custom validation or additional behavior
     def validate_email(self, value):
@@ -49,7 +57,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 # Simplified UserSerializer for other models
-class UserListSerializer(serializers.ModelSerializer):
+class UserListSerializer(BaseSerializer):
     avatar = serializers.ImageField(source='profile.avatar', read_only=True)  # Accessing avatar from the related Profile model
     
     class Meta:
@@ -61,11 +69,11 @@ class UserListSerializer(serializers.ModelSerializer):
     #     # Assuming User model has a related 'profile' field
     #     return obj.profile.avatar.url if obj.profile and obj.profile.avatar else None
 
-class RegisterSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True, validators=[validate_alphanumeric_username])
+class RegisterSerializer(BaseSerializer):
+    username = serializers.CharField(required=True, min_length=3, validators=[validate_alphanumeric_username])
     email = serializers.EmailField(required=True)
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password] )
-    password_confirmation = serializers.CharField(write_only=True, required=True)
+    password = serializers.CharField(write_only=True, required=True, min_length=8, validators=[validate_password] )
+    password_confirmation = serializers.CharField(write_only=True, min_length=8,  required=True)
     
     class Meta:
         model = User
@@ -126,21 +134,41 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
 
-    password = serializers.CharField(
+    new_password1 = serializers.CharField(
         label="New password confirmation",
         style={'input_type': 'password'},
         trim_whitespace=False,
+        required=True
     )
-    re_password = serializers.CharField(write_only=True, required=True)
+    new_password2 = serializers.CharField(write_only=True, required=True)
 
     def validate(self, data):
         """
         Check that the password and re_password match.
         """
-        if data['password'] != data['re_password']:
-            raise serializers.ValidationError({"re_password": "Şifreler uyuşmuyor."})
+        if data['new_password1'] != data['new_password2']:
+            raise serializers.ValidationError({"new_password2": "Şifreler uyuşmuyor."})
         return data
     
     def validate_password(self, value):
         password_validation.validate_password(value)
         return value
+
+# from django.utils.encoding import force_str
+# from django.utils.http import  urlsafe_base64_decode
+
+# class UidTokenSerializer(serializers.Serializer):
+#     uidb64 = serializers.CharField(required=True, min_length=3)
+#     token = serializers.CharField(required=True, min_length=3)
+
+#     def validate_ıidb64(self, value):
+#         """
+#         Check if the email exists in the system.
+#         """
+
+#         uid = force_str(urlsafe_base64_decode(uidb64))
+#         user = User.objects.get(pk=uid)
+
+#         if not User.objects.filter(email=value).exists():
+#             raise serializers.ValidationError("Kayıtlı eposta bulunamadı")
+#         return value

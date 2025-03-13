@@ -138,10 +138,28 @@ def password_reset_confirm_view(request, uidb64, token):
     except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
         messages.error(request, "Link hatalı veya süresi geçmiş.")
         return redirect('accounts:password_reset_request')
+        
 
 
+def email_verify_view(request):
+    try:
+        # Decode the uid to get the user ID
+        user=request.user
+        token, uid = generate_token_and_uid(user)
+        # Call email handler (decides between sync or async automatically)
+        if not user.email_verified:
+            send_email(verification_email, user.username, user.email, token, uid)
+            return redirect('core:home')
+        else:
+            messages.error(request, "Eposta zaten doğrulanmış.")
+            return redirect('core:home')
 
-def email_verify_view(request, uidb64, token):
+    except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+        messages.error(request, "Link hatalı veya süresi geçmiş.")
+        return redirect('core:home')
+
+
+def email_verify_confirm_view(request, uidb64, token):
     try:
         # Decode the uid to get the user ID
         uid = urlsafe_base64_decode(uidb64).decode()

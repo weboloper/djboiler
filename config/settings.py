@@ -52,23 +52,24 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
-    "django_celery_beat",
-    "django_celery_results",
-    "csp",
+    'drf_yasg',
+    'django_celery_beat',
+    'django_celery_results',
+    'csp',
     'storages',
     'corsheaders',
     'django_filters',
     'rest_framework',
-    "rest_framework_simplejwt",
-    "rest_framework_simplejwt.token_blacklist",
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'core',
     'accounts'
 ]
 
 MIDDLEWARE = [
-    "csp.middleware.CSPMiddleware",  # Add this line
+    'csp.middleware.CSPMiddleware',  # Add this line
     'django.middleware.security.SecurityMiddleware',
-    "config.middleware.SecurityHeadersMiddleware",  # Add custom security headers middleware
+    'config.middleware.SecurityHeadersMiddleware',  # Add custom security headers middleware
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -76,8 +77,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.common.CommonMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

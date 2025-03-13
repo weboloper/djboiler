@@ -3,6 +3,10 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from .utils import validate_alphanumeric_username
 from django_sqids import SqidsField
+from django.core.validators import FileExtensionValidator
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
+from core.models import BaseModel
 
 class MyUserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -36,23 +40,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
 
-    # Add related_name to avoid clashes
-    # Agroups = models.ManyToManyField(
-       # A 'auth.Group',
-        # Arelated_name='myuser_set',  # Add a unique related_name for the my user model
-        # Ablank=True,
-    # A)
-    # Auser_permissions = models.ManyToManyField(
-       # A 'auth.Permission',
-        # Arelated_name='myuser_permissions_set',  # Add a unique related_name for the my user model
-        # Ablank=True,
-    # A)
-
     def __str__(self):
         return self.email
 
 
-class EmailChangeRequest(models.Model):
+class EmailChangeRequest(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     new_email = models.EmailField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -62,12 +54,24 @@ class EmailChangeRequest(models.Model):
         return f"Email change request for {self.user.username}"
 
 # Profile model extending Account
-class Profile(models.Model):
+class Profile(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    # avatar = models.ImageField(
-    #     upload_to='avatars/',
-    #     validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])],
-    #     blank=True,
-    #     null=True
-    # )
+    avatar = models.ImageField(
+        upload_to='avatars/',
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])],
+        blank=True,
+        null=True
+    )
     bio = models.TextField(max_length=500, blank=True)
+
+    def __str__(self):
+        return self.user.username
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:  # If the user was created
+        Profile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()  # Save the associated profile if it already exists

@@ -1,5 +1,13 @@
 from django.db import models
+from django_sqids import SqidsField
 
+class BaseModel(models.Model):
+    """Base model to replace 'id' with 'sqid'."""
+    sqid = SqidsField(real_field_name="id")
+
+    class Meta:
+        abstract = True  # Prevent Django from treating this as a real model
+        
 class TimestampedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -23,3 +31,6 @@ class SoftDeleteModel(models.Model):
         self.is_deleted = False
         self.deleted_at = None
         self.save()
+
+
+

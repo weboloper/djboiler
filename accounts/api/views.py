@@ -24,6 +24,9 @@ from io import BytesIO
 from PIL import Image
 from core.email_handler import send_email
 
+# from drf_yasg.utils import swagger_auto_schema
+# from drf_yasg import openapi
+
 class CurrentUserAPIView(APIView):
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
@@ -48,33 +51,69 @@ class CurrentUserAPIView(APIView):
 
 class RegisterAPIView(APIView):
     permission_classes = (permissions.AllowAny,)
+
+    # @swagger_auto_schema(
+    #     operation_description="Kullanıcı kayıt endpointi",
+    #     request_body=RegisterSerializer,
+    #     tags=["accounts"],
+    #     responses={
+    #         201: openapi.Response(
+    #             description="Başarılı Kayıt",
+    #             examples={
+    #                 "application/json": {
+    #                     "id": 1,
+    #                     "username": "testuser",
+    #                     "email": "test@example.com",
+    #                     "first_name": "",
+    #                     "last_name":""
+    #                 }
+    #             }
+    #         ),
+    #         400: openapi.Response(description="Geçersiz giriş verileri"),
+    #     },
+    # )
+    
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            
-            if not settings.VERIFIED_ON_REGISTER:
-                app_url = settings.FRONTEND_URL
-                token, uid= generate_token_and_uid(user)
+            token, uid= generate_token_and_uid(user)
+            if not user.email_verified:
+                send_email(verification_email, user.username, user.email, token, uid)              
 
-                if not user.email_verified:
-                    send_email(verification_email, user.username, user.email, token, uid)              
-
-                data = serializer.data
-                data["token"] = token
-                data["uid"] = uid
+            data = serializer.data
+            # data["token"] = token
+            # data["uid"] = uid
                 
             return Response( data , status=status.HTTP_201_CREATED)
         return Response( serializer.errors  , status=status.HTTP_400_BAD_REQUEST)
-    
+
+
+class EmailVerificationRequestAPIView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        user = request.user  # Use the authenticated user
+
+        if user.email_verified:
+            return Response({'detail': 'E-posta doğrulanmış durumda.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        token, uid = generate_token_and_uid(user)
+
+        send_email(verification_email, user.username, user.email, token, uid)
+
+        if settings.ENVIRONMENT == 'dev':
+            return Response({'message': 'Epostanıza gönderildi.' , 'token': token,  "uid": uid}, status=status.HTTP_200_OK)
+        return Response({'message': 'E-postanıza gönderildi.'}, status=status.HTTP_200_OK)
+
 
 class EmailVerificationConfirmAPIView(APIView):
     permission_classes = (permissions.AllowAny,)
+
     def post(self, request, *args, **kwargs):
         uidb64 = kwargs.get('uidb64')
         token = kwargs.get('token')
         
-
         if uidb64 is None or token is None :
             return Response({'detail': 'Doğrulama bağlantısı geçersiz. Lütfen tekrar deneyiniz.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -86,64 +125,43 @@ class EmailVerificationConfirmAPIView(APIView):
 
         if user is not None and default_token_generator.check_token(user, token):
 
-            if user.is_verified:
+            if user.email_verified:
                 return Response({'detail': 'E-posta doğrulanmış durumda.'}, status=status.HTTP_400_BAD_REQUEST)
-            user.is_verified = True
+            user.email_verified = True
             user.save()
             return Response({'message': 'E-posta doğrulama başarıyla tamamlandı.'}, status=status.HTTP_200_OK)
 
         else:
             return Response({'detail': 'Doğrulama bağlantısı geçersiz. Lütfen tekrar deneyiniz.'}, status=status.HTTP_400_BAD_REQUEST)
         
-class EmailVerificationRequestAPIView(APIView):
-    
-    permission_classes = (permissions.AllowAny,)
-    def post(self, request):
-
-        try:
-            user = User.objects.get(email=request.data.get("email"))
-
-            if user.is_verified:
-                return Response({'detail': 'E-posta doğrulanmış durumda.'}, status=status.HTTP_400_BAD_REQUEST)
-            app_url = settings.FRONTEND_URL
-            token, uid = generate_token_and_uid(user)
- 
-            send_email(verification_email, user.username, user.email, token, uid)
-            return Response({'message': 'Epostanıza gönderildi.'}, status=status.HTTP_200_OK)
-
-        except User.DoesNotExist:
-            return Response({'detail': 'Böyle bi hesap yok.'}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class ResetPasswordRequestAPIView(APIView):
     permission_classes = (permissions.AllowAny,)
     def post(self, request):
 
         try:
-            app_url = settings.FRONTEND_URL
             user = User.objects.get(email=request.data.get("email"))            
             token, uid = generate_token_and_uid(user)
  
-
             send_email(password_reset_email, user.username, user.email, token, uid)
+            if settings.ENVIRONMENT == 'dev':
+                return Response({'message': 'Epostanıza gönderildi.' , 'token': token,  "uid": uid}, status=status.HTTP_200_OK)
             return Response({'message': 'Epostanıza gönderildi.'}, status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
             return Response({'detail': 'Böyle bi hesap yok.'}, status=status.HTTP_400_BAD_REQUEST)
         
  
-
-
 class ResetPasswordConfirmAPIView(APIView):
     permission_classes = (permissions.AllowAny,)
     def post(self, request, *args, **kwargs):
         uidb64 = kwargs.get('uidb64')
         token = kwargs.get('token')
-        password = request.data.get('password')
+        new_password1 = request.data.get('new_password1')
+        new_password2 = request.data.get('new_password2')
         
-
-        if uidb64 is None or token is None or password is None:
-            return Response({'detail': 'uidb64, token ve şifre gerekli'}, status=status.HTTP_400_BAD_REQUEST)
+        if uidb64 is None or token is None:
+            return Response({'detail': 'Şifre hatırlatma bağlantısı geçersiz.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
@@ -155,14 +173,14 @@ class ResetPasswordConfirmAPIView(APIView):
 
             serializer = PasswordResetConfirmSerializer(data=request.data)
             if serializer.is_valid():
-                user.set_password(password)
+                user.set_password(new_password1)
                 user.save()
                 return Response({'message': 'Şifreniz başarıyla değiştirildi.'}, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
             
         else:
-            return Response({'detail': 'Şifre hatırlatma bağlantısı geçersiz. Lütfen tekrar deneyiniz.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Şifre hatırlatma bağlantısı geçersiz.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
