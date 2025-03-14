@@ -30,9 +30,6 @@ from django.contrib.auth import update_session_auth_hash
 from django.shortcuts import get_object_or_404
 from urllib.parse import urlencode
 
-# from drf_yasg.utils import swagger_auto_schema
-# from drf_yasg import openapi
-
 class CurrentUserAPIView(APIView):
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)

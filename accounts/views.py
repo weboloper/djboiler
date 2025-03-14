@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from .forms import CustomRegistrationForm, CustomPasswordResetForm, CustomEmailChangeForm,CustomPasswordChangeForm
 from .utils import generate_token_and_uid
-from .emails import verification_email, test_email , password_reset_email , change_email_email
+from .emails import verification_email, password_reset_email , change_email_email, test_email
 from core.email_handler import send_email
 from config.celery import debug_task
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -29,20 +29,10 @@ from django.urls import reverse_lazy
 # @permission_required('blog.can_add_post', raise_exception=True)
 # def create_post(request):
 #     return render(request, "blog/create_post.html")
-
-
-from django.http import JsonResponse
-
-def csp_report(request):
-    return JsonResponse({"status": "CSP violation logged."})
-
-from django.http import HttpResponse
-
 def test_email_view(request):
     send_email(test_email)
     messages.success(request, 'Test email sent.')
-    return HttpResponse("Test email sent.")
-
+    return redirect('core:home')
 
 # In case you want a custom login form handling or logic
 def login_view(request):

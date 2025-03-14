@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
-    'drf_yasg',
+    # 'drf_yasg',
     'django_celery_beat',
     'django_celery_results',
     'csp',

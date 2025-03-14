@@ -1,5 +1,5 @@
 from django.conf import settings
-from accounts.tasks import send_email_task  # Import from tasks.py
+from .tasks import send_email_task  # Import from tasks.py
 
 def send_email(email_function, *args, **kwargs):
     """

@@ -22,6 +22,8 @@ from django.http import HttpResponse
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.forms import SetPasswordForm
+from .emails import send_verification_email, send_request_password_email
+
 
 def send_email_view(request):
     if request.method == 'POST':
@@ -29,7 +31,6 @@ def send_email_view(request):
         return redirect('account:email_sent_success')
     
     return render(request, 'account/send_email.html')
-
 
 def login_view(request):
     if request.method == 'POST':
@@ -67,8 +68,6 @@ def logout_view(request):
     """
     logout(request)  # End the user session
     return redirect('home')  # Redirect to the homepage or any other page
-
-from .emails import send_verification_email, send_request_password_email
 
 def register_view(request):
     
