@@ -13,3 +13,5 @@ django-filter
 django-sqids
 google-api-python-client
 pillow
+SQLAlchemy
+redis

@@ -1,18 +1,6 @@
-from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.urls import reverse_lazy
-
-def test_email():
-    subject = 'Test E-Postası'
-    recipient_list = ['weboloper@gmail.com']
-
-    # E-posta şablonunu render et
-    message = render_to_string('accounts/emails/test_email.html', {
-        'username': 'Test Kullanıcısı',
-    })
-
-    return subject, message, recipient_list
 
 def verification_email(username, email, token, uidb64):
     """

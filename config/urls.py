@@ -23,11 +23,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('', include('core.urls')),
-    path('account/', include('accounts.urls')),
-
+    path('', include('accounts.urls')),
 ]
 
-# Serve static and media files only in development
 if settings.DEBUG:
     # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

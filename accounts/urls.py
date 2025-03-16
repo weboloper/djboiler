@@ -1,24 +1,34 @@
 from django.urls import path,include
-from . import views
+# from . import views
+from .views import auth_views,email_views,password_views,oauth_views
 
 app_name = 'accounts'
 
 urlpatterns = [
-    path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
-    path('register/', views.register_view, name='register'),
-    path('test-email/', views.test_email_view, name='test_email_view'),
+    path("accounts/", include([
+        # auth urls
+        path('login/', auth_views.login_view, name='login'),
+        path('logout/', auth_views.logout_view, name='logout'),
+        path('register/', auth_views.register_view, name='register'),
 
-    # password urls
-    path('password-reset/', views.password_reset_request_view, name='password_reset_request'),
-    path('password-reset/<uidb64>/<token>/', views.password_reset_confirm_view, name='password_reset_confirm'),
+        # password urls
+        path("password/", include([
+            path('reset/', password_views.password_reset_request_view, name='password_reset_request'),
+            path('reset/<uidb64>/<token>/', password_views.password_reset_confirm_view, name='password_reset_confirm'),
+            path('change/', password_views.password_change_view, name='password_change'),
+        ])),
 
-    # email urls
-    path('email-change/', views.email_change_view, name='email_change_request'),
-    path('email-change-confirm/<uidb64>/<token>/', views.email_change_confirm_view, name='email_change_confirm'),
-    path('email-verification-confirm/<uidb64>/<token>/', views.email_verify_view, name='email_verify_confirm'),
+        # email urls
+        path("email/", include([
+            path('verify/', email_views.email_verify_view, name='email_verify_request'),
+            path('verify/<uidb64>/<token>/', email_views.email_verify_confirm_view, name='email_verify_confirm'),
+            path('change/', email_views.email_change_view, name='email_change_request'),
+            path('change/<uidb64>/<token>/', email_views.email_change_confirm_view, name='email_change_confirm'),
+        ])),
+        
+        # oauth urls
+        path('auth-receiver', oauth_views.auth_receiver, name='auth_receiver'), # google login
+    ])),
 
-    path('api/', include('accounts.api.urls')),
-
-    path('auth-receiver', views.auth_receiver, name='auth_receiver'),
+    path('api/accounts/', include('accounts.api.urls')),
 ]

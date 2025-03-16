@@ -16,6 +16,13 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 
 app.autodiscover_tasks()
 
-@app.task(bind=True)
-def debug_task(self):
-    print(f"Request: {self.request!r}")
+# from django.conf import settings
+# Apply Eager Mode in Development
+# if settings.DEBUG:
+#     app.conf.task_always_eager = True
+#     app.conf.task_eager_propagates = True
+    
+# @app.task(bind=True)
+# def debug_task(self):
+#     print(f"Request: {self.request!r}")
+

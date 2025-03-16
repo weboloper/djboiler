@@ -3,7 +3,13 @@
 {% block content %}
     {% if not user.is_authenticated %}
     <a href="{% url 'accounts:login' %}">Login here</a>
+    <a href="{% url 'accounts:password_reset_request' %}">Reset Password</a>
     {% else %}
+    <a href="{% url 'accounts:password_change' %}">Change Password</a>
+    {% if not user.email_verified %}
+    <a href="{% url 'accounts:email_change_request' %}">Request verify email</a>
+    {% endif %}
+    <a href="{% url 'core:test_email' %}">Test core email</a>
     <a href="{% url 'accounts:email_change_request' %}">Change email</a>
     <a href="{% url 'accounts:logout' %}">Logout here</a>
     {% endif %}

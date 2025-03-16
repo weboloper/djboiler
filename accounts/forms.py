@@ -4,7 +4,7 @@ from .utils import validate_alphanumeric_username  # Import your utility functio
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.hashers import check_password
-
+from django.contrib.auth.password_validation import validate_password
 
 class CustomRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
@@ -33,6 +33,22 @@ class CustomRegistrationForm(forms.ModelForm):
             raise ValidationError("Bu e-posta adresine sahip bir hesap zaten mevcut.")
         
         return email
+    
+    def clean_password(self):
+        password = self.cleaned_data.get("password")
+        username = self.cleaned_data.get("username", "")  # Default to empty string
+        
+        # Apply Django's default password validation
+        try:
+            validate_password(password)  
+        except ValidationError as e:
+            raise forms.ValidationError(e.messages)
+        
+        # Custom check: Prevent passwords similar to the username
+        if username.lower() in password.lower():
+            raise forms.ValidationError("Şifreniz kullanıcı adınıza çok benziyor.")
+
+        return password
 
     def clean(self):
         cleaned_data = super().clean()
@@ -64,6 +80,39 @@ class CustomPasswordResetForm(PasswordResetForm):
             raise ValidationError("Böyle bir kullanıcı yok.")
 
 
+class CustomPasswordChangeForm(forms.Form):
+    old_password = forms.CharField(widget=forms.PasswordInput, label="Mevcut Şifre")
+    new_password1 = forms.CharField(widget=forms.PasswordInput, label="Yeni Şifre")
+    new_password2 = forms.CharField(widget=forms.PasswordInput, label="Yeni Şifre (Tekrar)")
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+    def clean_old_password(self):
+        old_password = self.cleaned_data.get("old_password")
+        if not check_password(old_password, self.user.password):
+            raise forms.ValidationError("Mevcut şifreniz yanlış.")
+        return old_password
+
+    def clean_new_password1(self):
+        new_password1 = self.cleaned_data.get("new_password1")
+        try:
+            validate_password(new_password1, self.user)  # Django's built-in password validators
+        except ValidationError as e:
+            raise forms.ValidationError(e.messages)
+        return new_password1
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password1 = cleaned_data.get("new_password1")
+        new_password2 = cleaned_data.get("new_password2")
+
+        if new_password1 and new_password2 and new_password1 != new_password2:
+            self.add_error("new_password2", "Şifreler uyuşmuyor.")
+
+        return cleaned_data
+        
 
 class CustomEmailChangeForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput, label="Şifre")

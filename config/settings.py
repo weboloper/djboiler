@@ -52,23 +52,24 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
-    "django_celery_beat",
-    "django_celery_results",
-    "csp",
+    # 'drf_yasg',
+    'django_celery_beat',
+    'django_celery_results',
+    'csp',
     'storages',
     'corsheaders',
     'django_filters',
     'rest_framework',
-    "rest_framework_simplejwt",
-    "rest_framework_simplejwt.token_blacklist",
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'core',
     'accounts'
 ]
 
 MIDDLEWARE = [
-    "csp.middleware.CSPMiddleware",  # Add this line
+    'csp.middleware.CSPMiddleware',  # Add this line
     'django.middleware.security.SecurityMiddleware',
-    "config.middleware.SecurityHeadersMiddleware",  # Add custom security headers middleware
+    'config.middleware.SecurityHeadersMiddleware',  # Add custom security headers middleware
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -76,8 +77,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.common.CommonMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -118,6 +119,12 @@ DATABASES = {
 # Authentication
 
 AUTH_USER_MODEL = 'accounts.User'
+
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailOrUsernameModelBackend',
+    # 'django.contrib.auth.backends.ModelBackend',
+]
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -253,8 +260,6 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
 
 # Production settings 
-
-
 if config('CELERY_BROKER') == "redis":
     CELERY_RESULT_BACKEND="django-db"
     CELERY_BROKER_URL= config("CELERY_BROKER_REDIS_URL", default="redis://localhost:6379")

@@ -1,114 +1,76 @@
 from rest_framework import serializers
-from ..models import User, Profile
+from ..models import User, Profile, EmailChangeRequest
 from ..utils import validate_alphanumeric_username
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import password_validation
+from core.serializers import BaseSerializer
 
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(BaseSerializer):
     class Meta:
         model = Profile
-        fields = ('id', 'user', 'avatar', 'bio', 'twitter', 'instagram', 'facebook', 'pinterest')
+        exclude =['user']
 
 
-class UserSerializer(serializers.ModelSerializer):
-    # If you want to include the profile data in the user serializer
-    profile = ProfileSerializer(read_only=True)
+class UserSerializer(BaseSerializer):
+    profile = ProfileSerializer(read_only=True, allow_null=True)
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'date_joined', 
-                  'is_active', 'email_verified', 'is_staff', 'profile')  # Customize this list as needed
+        exclude =['password']
 
-    # Optionally, if you want to add custom validation or additional behavior
     def validate_email(self, value):
-        # Example of custom email validation (you can add your own rules)
         if 'example.com' in value:
             raise serializers.ValidationError("Email domain 'example.com' is not allowed.")
         return value
 
     def create(self, validated_data):
-        """
-        Custom create method if you need additional actions when creating the user.
-        """
-        user = User.objects.create_user(**validated_data)  # Ensure you use `create_user` to handle password hashing
+        user = User.objects.create_user(**validated_data)
         return user
 
     def update(self, instance, validated_data):
-        """
-        Custom update method to handle updating a user instance.
-        """
-        instance.email = validated_data.get('email', instance.email)
-        instance.username = validated_data.get('username', instance.username)
-        instance.first_name = validated_data.get('first_name', instance.first_name)
-        instance.last_name = validated_data.get('last_name', instance.last_name)
-        instance.is_active = validated_data.get('is_active', instance.is_active)
-        instance.email_verified = validated_data.get('email_verified', instance.email_verified)
-        instance.is_staff = validated_data.get('is_staff', instance.is_staff)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
         instance.save()
         return instance
 
 
-# Simplified UserSerializer for other models
-class UserListSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(source='profile.avatar', read_only=True)  # Accessing avatar from the related Profile model
+class UserListSerializer(BaseSerializer):
+    avatar = serializers.ImageField(source='profile.avatar', read_only=True)
     
     class Meta:
-        model = User  # Assuming User model is the same one used in `created_by` and `updated_by`
-        fields = ['username', 'first_name', 'last_name' , 'avatar']  # Include only the fields you need
+        model = User
+        fields = ['username', 'first_name', 'last_name' , 'avatar']  
 
-    # avatar = serializers.SerializerMethodField()
-    # def get_avatar(self, obj):
-    #     # Assuming User model has a related 'profile' field
-    #     return obj.profile.avatar.url if obj.profile and obj.profile.avatar else None
 
-class RegisterSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True, validators=[validate_alphanumeric_username])
+class RegisterSerializer(BaseSerializer):
+    username = serializers.CharField(required=True, min_length=3, validators=[validate_alphanumeric_username])
     email = serializers.EmailField(required=True)
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password] )
-    password_confirmation = serializers.CharField(write_only=True, required=True)
+    password = serializers.CharField(write_only=True, required=True, min_length=8, validators=[validate_password] )
+    password_confirmation = serializers.CharField(write_only=True, min_length=8,  required=True)
     
     class Meta:
         model = User
         fields = ['email', 'username', 'first_name', 'last_name', 'password', 'password_confirmation']
     
     def validate(self, data):
-        """
-        Check that the password and password_confirmation match.
-        """
         if data['password'] != data['password_confirmation']:
             raise serializers.ValidationError("Şifreler uyuşmuyor.")
         return data
 
     def validate_email(self, value):
-        """
-        Check that the email is unique and valid.
-        """
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("Eposta kullanımda.")
         return value
 
     def validate_username(self, value):
-        """
-        Check that the username is unique and valid.
-        """
-        reserved_usernames = ['register', 'token', 'verify']
-        if value in reserved_usernames:
-            raise serializers.ValidationError(f"Kullanıcı adı kullanımda.")
-    
-        if User.objects.filter(username=value).exists():
+        reserved_usernames = ['register', 'token', 'verify','admin']
+        if value in reserved_usernames or User.objects.filter(username=value).exists():
             raise serializers.ValidationError("Kullanıcı adı kullanımda.")
         return value
 
     def create(self, validated_data):
-        """
-        Create the user and also create an associated Profile.
-        """
-        # Remove the re_password as it’s not needed for the user creation
         validated_data.pop('password_confirmation')
-
-        # Create the user
         user = User.objects.create_user(**validated_data)  # This ensures password is hashed
-        
         return user
 
 
@@ -116,31 +78,54 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     def validate_email(self, value):
-        """
-        Check if the email exists in the system.
-        """
         if not User.objects.filter(email=value).exists():
             raise serializers.ValidationError("Kayıtlı eposta bulunamadı")
         return value
     
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
-
-    password = serializers.CharField(
-        label="New password confirmation",
-        style={'input_type': 'password'},
-        trim_whitespace=False,
+    new_password1 = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password]
     )
-    re_password = serializers.CharField(write_only=True, required=True)
+    new_password2 = serializers.CharField(write_only=True, required=True)
 
     def validate(self, data):
-        """
-        Check that the password and re_password match.
-        """
-        if data['password'] != data['re_password']:
-            raise serializers.ValidationError({"re_password": "Şifreler uyuşmuyor."})
+        if data['new_password1'] != data['new_password2']:
+            raise serializers.ValidationError({"new_password2": "Şifreler uyuşmuyor."})
         return data
     
-    def validate_password(self, value):
-        password_validation.validate_password(value)
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True, required=True)
+    new_password1 = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password]
+    )
+    new_password2 = serializers.CharField(write_only=True, required=True)
+
+    def validate_old_password(self, value):
+        user = self.context["request"].user
+        if not user.check_password(value):
+            raise serializers.ValidationError({"old_password": "Şifreler uyuşmuyor."})
         return value
+
+    def validate(self, data):
+        if data["new_password1"] != data["new_password2"]:
+            raise serializers.ValidationError({"new_password2": "Şifreler uyuşmuyor."})
+        return data
+
+class EmailChangeRequestSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True)
+    new_email = serializers.EmailField()
+
+    def validate(self, data):
+        user = self.context['request'].user
+        if not user.check_password(data['password']):
+            raise serializers.ValidationError({"password": "Şifreniz yanlış."})
+
+        if User.objects.filter(email=data['new_email']).exists():
+            raise serializers.ValidationError({"new_email": "Eposta kullanımda."})
+        
+        return data
