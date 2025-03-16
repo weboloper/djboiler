@@ -19,14 +19,14 @@ def email_verify_view(request):
         # Call email handler (decides between sync or async automatically)
         if not user.email_verified:
             send_email_handler(verification_email, user.username, user.email, token, uid)
-            return redirect('core:home')
+            return redirect('pages:home')
         else:
             messages.error(request, "Eposta zaten doğrulanmış.")
-            return redirect('core:home')
+            return redirect('pages:home')
 
     except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
         messages.error(request, "Link hatalı veya süresi geçmiş.")
-        return redirect('core:home')
+        return redirect('pages:home')
 
 
 def email_verify_confirm_view(request, uidb64, token):
@@ -40,15 +40,15 @@ def email_verify_confirm_view(request, uidb64, token):
             user.email_verified=True
             user.save()
             messages.success(request, 'Epostanız başarıyla doğrulandı.')
-            return redirect('core:home')
+            return redirect('pages:home')
 
         else:
             messages.error(request, "Link hatalı veya süresi geçmiş.")
-            return redirect('core:home')
+            return redirect('pages:home')
 
     except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
         messages.error(request, "Link hatalı veya süresi geçmiş.")
-        return redirect('core:home')
+        return redirect('pages:home')
 
 @login_required
 def email_change_view(request):
@@ -76,7 +76,7 @@ def email_change_view(request):
             send_email_handler(change_email_email, user.username, new_email, token, uid)
 
             messages.success(request, "Yeni e-posta adresinizi doğrulamak için size bir bağlantı gönderdik.")
-            return redirect('core:home')
+            return redirect('pages:home')
 
     else:
         form = CustomEmailChangeForm()
@@ -103,7 +103,7 @@ def email_change_confirm_view(request, uidb64, token):
             email_change_request.save()
 
             messages.success(request, "Epostanız başarıyla değiştirildi.")
-            return redirect('core:home')
+            return redirect('pages:home')
 
         else:
             messages.error(request, "Link hatalı veya süresi geçmiş.")
@@ -111,4 +111,4 @@ def email_change_confirm_view(request, uidb64, token):
 
     except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
         messages.error(request, "Link hatalı veya süresi geçmiş.")
-        return redirect('core:home')
+        return redirect('pages:home')
