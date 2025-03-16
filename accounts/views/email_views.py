@@ -1,11 +1,11 @@
 from django.shortcuts import render
-from django.contrib.auth import authenticate, get_user_model 
+from django.contrib.auth import authenticate, get_user_model
 from django.shortcuts import redirect
 from django.contrib import messages
-from ..forms import  CustomEmailChangeForm 
+from ..forms import CustomEmailChangeForm
 from ..utils import generate_token_and_uid
 from ..emails import verification_email, change_email_email
-from core.email_handler import send_email
+from core.email_handler import send_email_handler
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from ..models import EmailChangeRequest
@@ -18,7 +18,7 @@ def email_verify_view(request):
         token, uid = generate_token_and_uid(user)
         # Call email handler (decides between sync or async automatically)
         if not user.email_verified:
-            send_email(verification_email, user.username, user.email, token, uid)
+            send_email_handler(verification_email, user.username, user.email, token, uid)
             return redirect('core:home')
         else:
             messages.error(request, "Eposta zaten doğrulanmış.")
@@ -73,7 +73,7 @@ def email_change_view(request):
             # Generate UID and token
             token, uid = generate_token_and_uid(user)
 
-            send_email(change_email_email, user.username, new_email, token, uid)
+            send_email_handler(change_email_email, user.username, new_email, token, uid)
 
             messages.success(request, "Yeni e-posta adresinizi doğrulamak için size bir bağlantı gönderdik.")
             return redirect('core:home')

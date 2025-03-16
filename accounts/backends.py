@@ -19,8 +19,8 @@ class EmailOrUsernameModelBackend(ModelBackend):
             return None
         
         # Check if email verification is required and the user is not verified
-        if settings.EMAIL_VERIFICATION_REQUIRED_TO_LOGIN and not user.is_verified:
-            return None  # Don't authenticate if email verification is required but user is not verified
+        # if not user.email_verified:
+        #     return None  # Don't authenticate if email verification is required but user is not verified
 
         # If everything passes, return the user
         return user

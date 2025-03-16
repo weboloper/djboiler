@@ -10,3 +10,4 @@ def test_email():
     })
 
     return subject, message, recipient_list
+

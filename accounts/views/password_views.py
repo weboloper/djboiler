@@ -1,15 +1,17 @@
 from django.shortcuts import render
-from django.contrib.auth import authenticate, get_user_model,update_session_auth_hash
+from django.contrib.auth import get_user_model,update_session_auth_hash
 from django.shortcuts import redirect
 from django.contrib import messages
-from ..forms import CustomPasswordResetForm, CustomPasswordChangeForm
+from ..forms import  CustomPasswordResetForm, CustomPasswordChangeForm
 from ..utils import generate_token_and_uid
-from ..emails import password_reset_email
-from core.email_handler import send_email
-from django.utils.http import urlsafe_base64_decode
+from ..emails import  password_reset_email  
+from core.email_handler import send_email_handler
+# from config.celery import debug_task
+from django.utils.http import  urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.forms import SetPasswordForm 
 from django.contrib.auth.decorators import login_required
+
 
 def password_reset_request_view(request):
     if request.method == "POST":
@@ -17,10 +19,9 @@ def password_reset_request_view(request):
         if form.is_valid():
             # Form handling logic
             # form.save(request=request, use_https=request.is_secure())
-
             user = form.cleaned_data["email"]  # Access the user object
             token, uid = generate_token_and_uid(user)
-            send_email(password_reset_email, user.username, user.email, token, uid)
+            send_email_handler(password_reset_email, user.username, user.email, token, uid)
 
             messages.success(request, "Şifre sıfırlama bağlantısı gönderildi.")
             return redirect('core:home')

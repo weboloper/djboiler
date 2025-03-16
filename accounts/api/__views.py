@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import status
-from ..api.serializers import (
+from .serializers import (
     UserSerializer,
     RegisterSerializer, 
     PasswordResetConfirmSerializer,
@@ -24,7 +24,7 @@ import requests
 from django.utils.crypto import get_random_string
 from io import BytesIO
 from PIL import Image
-from core.email_handler import send_email
+from core.email_handler import send_email_handler
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import update_session_auth_hash
 from django.shortcuts import get_object_or_404
@@ -48,7 +48,7 @@ class RegisterAPIView(APIView):
             user = serializer.save()
             if not user.email_verified:
                 token, uid = generate_token_and_uid(user)
-                send_email(verification_email, user.username, user.email, token, uid)
+                send_email_handler(verification_email, user.username, user.email, token, uid)
             return Response({
                 "id": user.id,
                 "username": user.username,
@@ -67,7 +67,7 @@ class EmailVerificationRequestAPIView(APIView):
             return Response({'detail': 'E-posta doğrulanmış durumda.'}, status=status.HTTP_400_BAD_REQUEST)
 
         token, uid = generate_token_and_uid(user)
-        send_email(verification_email, user.username, user.email, token, uid)
+        send_email_handler(verification_email, user.username, user.email, token, uid)
 
         response_data = {'message': 'E-postanıza gönderildi.'}
         if settings.ENVIRONMENT == 'dev':
@@ -107,7 +107,7 @@ class ResetPasswordRequestAPIView(APIView):
     def post(self, request):
         user = get_object_or_404(User, email=request.data.get("email"))
         token, uid = generate_token_and_uid(user)
-        send_email(password_reset_email, user.username, user.email, token, uid)
+        send_email_handler(password_reset_email, user.username, user.email, token, uid)
 
         response_data = {'message': 'E-postanıza gönderildi.'}
         if settings.ENVIRONMENT == 'dev':
@@ -173,7 +173,7 @@ class EmailChangeRequestView(APIView):
             # Generate UID and token
             token, uid = generate_token_and_uid(user)
 
-            send_email(change_email_email, user.username, new_email, token, uid)
+            send_email_handler(change_email_email, user.username, new_email, token, uid)
 
             response_data = {'message': 'E-postanıza gönderildi.'}
             if settings.ENVIRONMENT == 'dev':

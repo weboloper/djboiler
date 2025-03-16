@@ -1,10 +1,10 @@
-from django.contrib.auth import login, get_user_model
+from django.contrib.auth import login , get_user_model
 from django.shortcuts import redirect
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
-from django.urls import reverse_lazy
+from django.http import HttpResponse
 
 def unique_username(username):
     counter = 1
@@ -22,6 +22,9 @@ def auth_receiver(request):
     print('Inside')
     token = request.POST['credential']
 
+    if not token:
+        return HttpResponse(status=400)  # Bad Request if token is missing
+    
     try:
         user_data = id_token.verify_oauth2_token(
             token, requests.Request(), settings.GOOGLE_CLIENT_ID
@@ -53,14 +56,14 @@ def auth_receiver(request):
         )
         user.save()
 
-     # Get the correct authentication backend (using your custom backend)
-    # backend = 'account.backends.EmailOrUsernameModelBackend'
+    # Get the correct authentication backend (using your custom backend)
+    backend = 'accounts.backends.EmailOrUsernameModelBackend'
     
-    # # Set the backend attribute on the user manually
-    # user.backend = backend
+    # Set the backend attribute on the user manually
+    user.backend = backend
     
     # Authenticate the user and log them in
-    login(request, user)
+    login(request, user, backend=backend)
     # login(request, user, backend=backend)
 
     return redirect('core:home')  # Redirect to the appropriate page after login

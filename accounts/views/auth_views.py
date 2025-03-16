@@ -1,11 +1,11 @@
 from django.shortcuts import render
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login , logout
 from django.shortcuts import redirect
 from django.contrib import messages
 from ..forms import CustomRegistrationForm
 from ..utils import generate_token_and_uid
 from ..emails import verification_email
-from core.email_handler import send_email
+from core.email_handler import send_email_handler
 from django.urls import reverse_lazy
 
 # In case you want a custom login form handling or logic
@@ -43,8 +43,8 @@ def register_view(request):
             # Generate token and UID
             token, uid = generate_token_and_uid(user)
             # Call email handler (decides between sync or async automatically)
-            if not user.email_verified:
-                send_email(verification_email, user.username, user.email, token, uid)
+            # if not user.email_verified:
+            send_email_handler(verification_email, user.username, user.email, token, uid)
             messages.success(request, 'Hesabınız oluşturuldu. Giriş yapabilirsiniz.')
             return redirect('accounts:login')
         else:
