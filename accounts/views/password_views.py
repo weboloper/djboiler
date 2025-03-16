@@ -24,7 +24,7 @@ def password_reset_request_view(request):
             send_email_handler(password_reset_email, user.username, user.email, token, uid)
 
             messages.success(request, "Şifre sıfırlama bağlantısı gönderildi.")
-            return redirect('core:home')
+            return redirect('pages:home')
         else:
             messages.error(request, 'Lütfen aşağıdaki hataları düzeltin.')
     else:
@@ -70,7 +70,7 @@ def password_change_view(request):
             update_session_auth_hash(request, request.user)  # Keep user logged in
 
             messages.success(request, "Şifreniz başarıyla değiştirildi.")
-            return redirect("core:home")
+            return redirect("pages:home")
         else:
             messages.error(request, 'Lütfen aşağıdaki hataları düzeltin.')
     else:

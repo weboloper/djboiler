@@ -66,4 +66,4 @@ def auth_receiver(request):
     login(request, user, backend=backend)
     # login(request, user, backend=backend)
 
-    return redirect('core:home')  # Redirect to the appropriate page after login
+    return redirect('pages:home')  # Redirect to the appropriate page after login

@@ -17,7 +17,7 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            return redirect('core:home')  # Redirect to the home page or dashboard
+            return redirect('pages:home')  # Redirect to the home page or dashboard
         else:
             # Show login error
             messages.error(request, 'Hatalı giriş bilgileri')
@@ -33,7 +33,7 @@ def logout_view(request):
     Logs out the user and redirects to the homepage.
     """
     logout(request)  # End the user session
-    return redirect('core:home')  # Redirect to the homepage or any other page
+    return redirect('pages:home')  # Redirect to the homepage or any other page
 
 def register_view(request):
     if request.method == 'POST':
