@@ -3,8 +3,10 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from ..models import Page
 from .serializers import PageSerializer
+from rest_framework import permissions
 
 class PageAPIView(APIView):
+    permission_classes = (permissions.AllowAny,)
     def get(self, request, slug):
         try:
             # Fetch the page object by slug

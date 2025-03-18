@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     'csp',
     'storages',
     'corsheaders',
+    'streamblocks',
+    'streamfield',
     'django_filters',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -190,7 +192,7 @@ if STORAGE_BACKEND == 's3':
     }
     AWS_S3_FILE_OVERWRITE = False  # Prevent overwriting files
     AWS_QUERYSTRING_AUTH = False  # Public URLs for static/media files
-    AWS_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/"
+    AWS_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
     AWS_DEFAULT_ACL = None  # Avoids issues with public/private access
 
 elif STORAGE_BACKEND == 'ngnix':
@@ -214,7 +216,7 @@ else:
     # Local file system storage (default for development)
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-
+    
 FILE_UPLOAD_PERMISSIONS = 0o644  # Ensures uploaded files are readable by web server
 
 # Default primary key field type
