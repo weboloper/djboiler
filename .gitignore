@@ -14,7 +14,7 @@ __pycache__/
 media/
 uploads/
 uploads/*
-/uploads/*
+uploads/**/*
 
 # Database
 *.sqlite3
