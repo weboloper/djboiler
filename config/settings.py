@@ -41,6 +41,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv(), default=["localhost", "127.0
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', cast=Csv(), default=["localhost", "127.0.0.1"])
 
 FRONTEND_URL=config('FRONTEND_URL')
+SITE_URL=config('SITE_URL')
 
 # Application definition
 

@@ -15,3 +15,4 @@ google-api-python-client
 pillow
 SQLAlchemy
 redis
+django-streamfield
