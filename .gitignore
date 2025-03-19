@@ -13,6 +13,8 @@ __pycache__/
 # Media files (your requirement)
 media/
 uploads/
+uploads/*
+/uploads/*
 
 # Database
 *.sqlite3

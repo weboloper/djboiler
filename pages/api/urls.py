@@ -7,6 +7,7 @@ from . import views
 app_name = 'api'
 
 urlpatterns = [
-    path('slug/<slug:slug>/', views.PageAPIView.as_view(), name='page-detail'),
-    # path('id/<sqid/', views.PageAPIView.as_view(), name='page-detail-sqid'),
+    path('<slug:lookup_value>/', views.PageAPIView.as_view(),{'lookup_type': 'sqid'}, name='page-detail'),
+    path('slug/<slug:lookup_value>/', views.PageAPIView.as_view(),{'lookup_type': 'slug'}, name='page-detail'),
+    
 ]
