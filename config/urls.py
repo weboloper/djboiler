@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('accounts.urls')),
     path('', include('pages.urls')),
+    path('streamfield/', include('streamfield.urls'))
 ]
 
 if settings.DEBUG:

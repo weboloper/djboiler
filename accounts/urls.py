@@ -13,21 +13,21 @@ urlpatterns = [
 
         # password urls
         path("password/", include([
-            path('reset/', password_views.password_reset_request_view, name='password_reset_request'),
-            path('reset/<uidb64>/<token>/', password_views.password_reset_confirm_view, name='password_reset_confirm'),
-            path('change/', password_views.password_change_view, name='password_change'),
+            path('reset/', password_views.password_reset_request_view, name='password-reset-request'),
+            path('reset/<uidb64>/<token>/', password_views.password_reset_confirm_view, name='password-reset-confirm'),
+            path('change/', password_views.password_change_view, name='password-change'),
         ])),
 
         # email urls
         path("email/", include([
-            path('verify/', email_views.email_verify_view, name='email_verify_request'),
-            path('verify/<uidb64>/<token>/', email_views.email_verify_confirm_view, name='email_verify_confirm'),
+            path('verify/', email_views.email_verify_view, name='email-verify-request'),
+            path('verify/<uidb64>/<token>/', email_views.email_verify_confirm_view, name='email-verify-confirm'),
             path('change/', email_views.email_change_view, name='email_change_request'),
-            path('change/<uidb64>/<token>/', email_views.email_change_confirm_view, name='email_change_confirm'),
+            path('change/<uidb64>/<token>/', email_views.email_change_confirm_view, name='email-change-confirm'),
         ])),
         
         # oauth urls
-        path('auth-receiver', oauth_views.auth_receiver, name='auth_receiver'), # google login
+        path('auth-receiver', oauth_views.auth_receiver, name='auth-receiver'), # google login
     ])),
 
     path('api/accounts/', include('accounts.api.urls')),

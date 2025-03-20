@@ -21,7 +21,7 @@ def login_view(request):
         else:
             # Show login error
             messages.error(request, 'Hatalı giriş bilgileri')
-    auth_receiver_url = reverse_lazy('accounts:auth_receiver')
+    auth_receiver_url = reverse_lazy('accounts:auth-receiver')
     context = {
         "auth_receiver_url": auth_receiver_url,
     }

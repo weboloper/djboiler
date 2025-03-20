@@ -15,3 +15,10 @@ class BaseSerializer(serializers.ModelSerializer):
         return fields
 
         
+class StreamSerializer(serializers.Serializer):
+    """Handles serialization of the `stream` field with caching."""
+    stream = serializers.SerializerMethodField()
+
+    def get_stream(self, obj):
+        """Retrieve stream from cache or regenerate it if not found."""
+        return obj.get_cached_stream()

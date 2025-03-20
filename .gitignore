@@ -12,6 +12,11 @@ __pycache__/
 
 # Media files (your requirement)
 media/
+uploads/
+uploads/*
+uploads/**/*
+/uploads/
+/uploads
 
 # Database
 *.sqlite3
@@ -25,6 +30,7 @@ celerydb.sqlite3
 # Ignore collected static files but not app static files
 /staticfiles/
 /static/
+
 
 # Allow static files inside apps
 !*/static/*

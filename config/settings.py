@@ -41,6 +41,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv(), default=["localhost", "127.0
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', cast=Csv(), default=["localhost", "127.0.0.1"])
 
 FRONTEND_URL=config('FRONTEND_URL')
+SITE_URL=config('SITE_URL')
 
 # Application definition
 
@@ -52,12 +53,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
-    # 'drf_yasg',
     'django_celery_beat',
     'django_celery_results',
     'csp',
     'storages',
     'corsheaders',
+    'streamblocks',
+    'streamfield',
     'django_filters',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -190,7 +192,7 @@ if STORAGE_BACKEND == 's3':
     }
     AWS_S3_FILE_OVERWRITE = False  # Prevent overwriting files
     AWS_QUERYSTRING_AUTH = False  # Public URLs for static/media files
-    AWS_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/"
+    AWS_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
     AWS_DEFAULT_ACL = None  # Avoids issues with public/private access
 
 elif STORAGE_BACKEND == 'ngnix':
@@ -214,7 +216,7 @@ else:
     # Local file system storage (default for development)
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-
+    
 FILE_UPLOAD_PERMISSIONS = 0o644  # Ensures uploaded files are readable by web server
 
 # Default primary key field type
@@ -236,6 +238,14 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     # 'EXCEPTION_HANDLER': 'app.utils.custom_exception_handler',
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "10/minute",  # Limit unauthenticated users to 10 requests per minute
+        "user": "50/minute",  # Limit authenticated users to 50 requests per minute
+    },
   
 }
 
@@ -373,3 +383,20 @@ GOOGLE_OAUTH_CLIENT_ID  = config('GOOGLE_CLIENT_ID')
 # We need these lines below to allow the Google sign in popup to work.
 SECURE_REFERRER_POLICY = 'no-referrer-when-downgrade'
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
+
+
+if DEBUG:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "my-local-memory-cache",
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": config("CELERY_BROKER_REDIS_URL", default="redis://localhost:6379"),
+        }
+    }
+    
