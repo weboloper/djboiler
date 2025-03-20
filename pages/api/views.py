@@ -7,7 +7,7 @@ from rest_framework import permissions
 from django.shortcuts import get_object_or_404
 
 class PageAPIView(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_object(self, lookup_value, lookup_type="sqid"):
         lookup_field = {

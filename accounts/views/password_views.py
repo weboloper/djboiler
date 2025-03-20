@@ -52,11 +52,11 @@ def password_reset_confirm_view(request, uidb64, token):
             return render(request, 'accounts/password_reset_confirm.html', {'form': form, 'user': user})
         else:
             messages.error(request, "Link hatalı veya süresi geçmiş.")
-            return redirect('accounts:password_reset_request')
+            return redirect('accounts:password-reset-request')
 
     except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
         messages.error(request, "Link hatalı veya süresi geçmiş.")
-        return redirect('accounts:password_reset_request')
+        return redirect('accounts:password-reset-request')
         
 
 @login_required

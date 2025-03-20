@@ -53,7 +53,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
-    # 'drf_yasg',
     'django_celery_beat',
     'django_celery_results',
     'csp',
@@ -239,6 +238,14 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     # 'EXCEPTION_HANDLER': 'app.utils.custom_exception_handler',
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "10/minute",  # Limit unauthenticated users to 10 requests per minute
+        "user": "50/minute",  # Limit authenticated users to 50 requests per minute
+    },
   
 }
 
