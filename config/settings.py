@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_celery_beat',
     'django_celery_results',
-    'csp',
+    # 'csp',
+    'django_ckeditor_5',
     'storages',
     'corsheaders',
     'streamblocks',
@@ -70,7 +71,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'csp.middleware.CSPMiddleware',  # Add this line
+    # 'csp.middleware.CSPMiddleware',  # Add this line
     'django.middleware.security.SecurityMiddleware',
     'config.middleware.SecurityHeadersMiddleware',  # Add custom security headers middleware
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -399,4 +400,14 @@ else:
             "LOCATION": config("CELERY_BROKER_REDIS_URL", default="redis://localhost:6379"),
         }
     }
-    
+
+CKEDITOR_5_ALLOW_ALL_FILE_TYPES = True
+CKEDITOR_5_UPLOAD_FILE_TYPES = ['jpeg', 'pdf', 'png'] # optional
+CKEDITOR_5_CONFIGS = {
+  'default': {
+      'toolbar': ['heading', '|', 'bold', 'italic', 'link',
+                  'bulletedList', 'numberedList', 'blockQuote', 'imageUpload', 'fileUpload' ], # include fileUpload here
+      'language': 'tr',
+}
+}
+CK_EDITOR_5_UPLOAD_FILE_VIEW_NAME = "custom_upload_file"

@@ -18,12 +18,17 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
+from core.views import custom_upload_function
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("upload/", custom_upload_function, name="custom_upload_file"),
     path('', include('accounts.urls')),
     path('', include('pages.urls')),
-    path('streamfield/', include('streamfield.urls'))
+    path('streamfield/', include('streamfield.urls')),
+    path("ckeditor5/", include('django_ckeditor_5.urls')),
+    
+
 ]
 
 if settings.DEBUG:

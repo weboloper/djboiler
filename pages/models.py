@@ -2,12 +2,13 @@ from django.db import models
 from core.models import BaseModel,StreamModel
 from streamblocks.models import RichText, ImageWithText
 from streamfield.fields import StreamField
+from django_ckeditor_5.fields import CKEditor5Field
 
 # Create your models here.
 class Page(BaseModel,StreamModel):
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
-    content = models.TextField(blank=True, null=True)  # Optional description for the variant type
+    content = CKEditor5Field(blank=True, null=True)  # Optional description for the variant type
     stream = StreamField(
         model_list=[ 
             RichText,
