@@ -8,6 +8,7 @@ from django.utils.crypto import get_random_string
 from rest_framework import status
 from django.contrib.admin.views.decorators import staff_member_required
 from rest_framework.decorators import api_view, permission_classes
+from django.shortcuts import render
 
 class CustomStorage(FileSystemStorage):
     """Custom storage for django_ckeditor_5 images."""
@@ -46,3 +47,16 @@ def custom_upload_function(request):
 
     return JsonResponse({'uploaded': False},
                         status=status.HTTP_400_BAD_REQUEST)
+
+
+def custom_page_not_found_view(request, exception):
+    return render(request, "core/errors/404.html", {})
+
+def custom_error_view(request, exception=None):
+    return render(request, "core/errors/500.html", {})
+
+def custom_permission_denied_view(request, exception=None):
+    return render(request, "core/errors/403.html", {})
+
+def custom_bad_request_view(request, exception=None):
+    return render(request, "core/errors/400.html", {})

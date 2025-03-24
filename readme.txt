@@ -12,7 +12,7 @@ none(development server)
 
 run celery (db or redis)
 celery -A myapp beat --loglevel=info
-celery -A config worker --loglevel=info
+celery -A myapp worker --loglevel=info
 
 
 1. Project Setup:
