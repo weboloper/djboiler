@@ -7,11 +7,15 @@ CSP_SCRIPT_SRC = (
     "https://accounts.google.com", 
     "https://apis.google.com", 
     "https://www.gstatic.com", 
+    "http://code.jquery.com",
+    # "http://stackpath.bootstrapcdn.com",
     "'unsafe-inline'",  # Allow inline scripts, cautiously
 )
 CSP_STYLE_SRC = (
     "'self'", 
     "fonts.googleapis.com", 
+    "cdnjs.cloudflare.com", 
+    # "http://stackpath.bootstrapcdn.com",
     "https://accounts.google.com/gsi/style", 
     "'unsafe-inline'",  # Allow inline styles cautiously
 )
@@ -20,6 +24,8 @@ CSP_FONT_SRC = (
     "'self'", 
     "fonts.gstatic.com", 
     "https://fonts.gstatic.com", 
+    "cdnjs.cloudflare.com", 
+    # "https://stackpath.bootstrapcdn.com",
 )
 CSP_CONNECT_SRC = (
     "'self'",
@@ -28,8 +34,8 @@ CSP_CONNECT_SRC = (
     "https://accounts.google.com/gsi/",
     "https://apis.google.com",
 )
-CSP_FRAME_SRC = ("'none'","https://accounts.google.com/gsi/")  # Disallow embedding in iframes
-CSP_OBJECT_SRC = ("'none'", "https://accounts.google.com/gsi/")  # Disallow Flash and other embedded objects
+CSP_FRAME_SRC = ("'self'","https://accounts.google.com/gsi/")  # Disallow embedding in iframes
+CSP_OBJECT_SRC = ("'self'", "https://accounts.google.com/gsi/")  # Disallow Flash and other embedded objects
 CSP_MEDIA_SRC = ("'self'",)
 
 # Allow Alpine.js & HTMX if using them

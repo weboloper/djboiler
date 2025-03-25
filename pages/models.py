@@ -9,5 +9,9 @@ class Page(BaseModel):
     parent = models.ForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title
+        return self.get_full_path()
     
+    def get_full_path(self):
+        if self.parent:
+            return f"{self.parent.get_full_path()}/{self.slug}"
+        return self.slug

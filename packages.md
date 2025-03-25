@@ -16,4 +16,4 @@ pillow
 SQLAlchemy
 redis
 django-streamfield
-django-ckeditor-5
+django-summernote

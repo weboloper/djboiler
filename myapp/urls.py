@@ -18,20 +18,17 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
-from core.views import custom_upload_function
 from django.conf.urls import (
 handler400, handler403, handler404, handler500
 )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("upload/", custom_upload_function, name="custom_upload_file"),
+    # path('streamfield/', include('streamfield.urls')),
+    path('summernote/', include('django_summernote.urls')),
     path('', include('accounts.urls')),
     path('', include('pages.urls')),
-    path('streamfield/', include('streamfield.urls')),
-    path("ckeditor5/", include('django_ckeditor_5.urls')),
     
-
 ]
 
 handler400 = 'core.views.custom_bad_request_view'

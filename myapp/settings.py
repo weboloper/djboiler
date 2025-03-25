@@ -56,11 +56,9 @@ INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'csp',
-    'django_ckeditor_5',
     'storages',
     'corsheaders',
-    # 'streamblocks',
-    # 'streamfield',
+    'django_summernote',
     'django_filters',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -345,5 +343,5 @@ else:
 
 USE_SSL = config("USE_SSL", default=False, cast=bool)
 from .configs.ssl import *
-from .configs.ckeditor import *
+from .configs.summernote import *
 from .configs.csp import *

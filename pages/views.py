@@ -12,9 +12,16 @@ def home_view(request):
     return render(request, 'pages/home.html')
 
 # Create your views here.
-def page_detail_view(request, slug):
-    # Fetch the page object by slug or raise a 404 error if not found
-    page = get_object_or_404(Page, slug=slug)
+def page_detail_view(request, slug_path):
+
+    slug_parts = slug_path.strip('/').split('/')
+    # Start with no parent and find the deepest matching child
+    parent = None
+    page = None
+
+    for slug in slug_parts:
+        page = get_object_or_404(Page, slug=slug, parent=parent)
+        parent = page  # Move to the next depth level
     
     # Render the page with the 'page_detail.html' template
     return render(request, 'pages/page_detail.html', {'page': page})
