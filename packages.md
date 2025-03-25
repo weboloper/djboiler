@@ -1,7 +1,6 @@
 django
 python-decouple
 whitenoise
-django-celery
 django-celery-beat
 django-celery-results
 django-csp
