@@ -11,9 +11,7 @@ def send_email_handler(email_function, *args, **kwargs):
     """
     subject, message, recipient_list = email_function(*args, **kwargs)
 
-    send_email_task.delay(subject, message, recipient_list)  # Run asynchronously
-    
-    # if settings.DEBUG:
-    #     send_email_task(subject, message, recipient_list)  # Run synchronously
-    # else:
-    #     send_email_task.delay(subject, message, recipient_list)  # Run asynchronously
+    if settings.USE_CELERY:
+        send_email_task.delay(subject, message, recipient_list)  # Run asynchronously
+    else:
+        send_email_task(subject, message, recipient_list)  # Run synchronously
