@@ -16,3 +16,4 @@ pillow
 SQLAlchemy
 redis
 django-streamfield
+django-summernote

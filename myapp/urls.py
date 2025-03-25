@@ -18,13 +18,23 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
+from django.conf.urls import (
+handler400, handler403, handler404, handler500
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # path('streamfield/', include('streamfield.urls')),
+    path('summernote/', include('django_summernote.urls')),
     path('', include('accounts.urls')),
     path('', include('pages.urls')),
-    path('streamfield/', include('streamfield.urls'))
+    
 ]
+
+handler400 = 'core.views.custom_bad_request_view'
+handler403 = 'core.views.custom_permission_denied_view'
+handler404 = 'core.views.custom_page_not_found_view'
+handler500 = 'core.views.custom_error_view'
 
 if settings.DEBUG:
     # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -22,7 +22,7 @@ urlpatterns = [
         path("email/", include([
             path('verify/', email_views.email_verify_view, name='email-verify-request'),
             path('verify/<uidb64>/<token>/', email_views.email_verify_confirm_view, name='email-verify-confirm'),
-            path('change/', email_views.email_change_view, name='email_change_request'),
+            path('change/', email_views.email_change_view, name='email-change-request'),
             path('change/<uidb64>/<token>/', email_views.email_change_confirm_view, name='email-change-confirm'),
         ])),
         

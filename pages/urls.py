@@ -6,7 +6,7 @@ app_name = 'pages'
 
 urlpatterns = [
     path('', views.home_view, name='home'),
-    path('<slug:slug>/', views.page_detail_view, name='page-detail-by-slug'),
+    path('<path:slug_path>/', views.page_detail_view, name='page-detail-by-slug'),
 
     path('api/pages/', include('pages.api.urls')),
 ]
