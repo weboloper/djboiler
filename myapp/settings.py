@@ -58,12 +58,13 @@ INSTALLED_APPS = [
     'csp',
     'storages',
     'corsheaders',
-    'django_summernote',
+    # 'django_summernote',
     'django_filters',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'core',
+    'core.apps.CustomDjangoSummernoteConfig',
     'pages',
     'accounts'
 ]
