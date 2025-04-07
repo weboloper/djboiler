@@ -14,5 +14,5 @@ SUMMERNOTE_CONFIG = {
 
     },
     'css': ('https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/summernote-lite.min.css',),
-    'attachment_upload_to': 'media/'
+    'attachment_upload_to': 'media/',
 }
