@@ -15,16 +15,30 @@ from decouple import Config,Csv, RepositoryEnv
 import os
 from datetime import timedelta 
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent  # <-- adjust this!
+# BASE_DIR = Path(__file__).resolve().parent.parent.parent  # <-- adjust this!
+
+# ENVIRONMENT = os.getenv('DJANGO_ENV', 'dev')
+
+# env_file = BASE_DIR / 'backend' / f'.env.{ENVIRONMENT}'
+
+# if not env_file.exists():
+#     raise FileNotFoundError(f"The environment file {env_file} does not exist. Please create it.")
+
+# config = Config(RepositoryEnv(env_file))
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 ENVIRONMENT = os.getenv('DJANGO_ENV', 'dev')
 
-env_file = BASE_DIR / 'backend' / f'.env.{ENVIRONMENT}'
+env_file =  f".env.{ENVIRONMENT}"
 
-if not env_file.exists():
+if not os.path.exists(env_file):
     raise FileNotFoundError(f"The environment file {env_file} does not exist. Please create it.")
 
 config = Config(RepositoryEnv(env_file))
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
