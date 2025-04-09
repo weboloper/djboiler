@@ -8,7 +8,10 @@ __pycache__/
 # Environment
 .env.dev
 .env.local
-.env.production
+.env.prod
+.env.dev
+.env.prod
+.env.test
 .env.staging
 
 # Media files (your requirement)
@@ -49,12 +52,6 @@ __src/
 # Virtual environment folder
 env/
 venv/
-.env.local
-.env.prod
-# .env.dev
-.env.prod
-.env.test
-.env.staging
 
 # IDE files (VSCode, PyCharm)
 .vscode/
@@ -68,4 +65,3 @@ venv/
 public/
 tmp
 stderr.log
-passenger_wsgi.py

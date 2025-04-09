@@ -15,18 +15,16 @@ from decouple import Config,Csv, RepositoryEnv
 import os
 from datetime import timedelta 
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent  # <-- adjust this!
 
 ENVIRONMENT = os.getenv('DJANGO_ENV', 'dev')
 
-env_file =  f".env.{ENVIRONMENT}"
+env_file = BASE_DIR / 'backend' / f'.env.{ENVIRONMENT}'
 
-if not os.path.exists(env_file):
+if not env_file.exists():
     raise FileNotFoundError(f"The environment file {env_file} does not exist. Please create it.")
 
 config = Config(RepositoryEnv(env_file))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -35,7 +33,7 @@ config = Config(RepositoryEnv(env_file))
 SECRET_KEY =  config('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG')
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv(), default=["localhost", "127.0.0.1"])
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', cast=Csv(), default=["localhost", "127.0.0.1"])
@@ -57,7 +55,6 @@ INSTALLED_APPS = [
     'csp',
     'storages',
     'corsheaders',
-    # 'django_summernote',
     'django_filters',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -176,52 +173,52 @@ MEDIA_URL = '/uploads/'
 MEDIA_ROOT = BASE_DIR / 'uploads'
 
 # Storage Backend Configuration
-STORAGE_BACKEND = config('STORAGE_BACKEND', default='local')  # Options: 's3', 'ngnix', 'whitenoise', 'local'
+STORAGE_BACKEND = config('STORAGE_BACKEND', default=None)  # Options: 's3', 'cpanel', 'whitenoise'
 
-# S3 Storage Backend Configuration
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
 if STORAGE_BACKEND == 's3':
-    # AWS S3 Configuration for Static and Media
+    # AWS settings
     AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
     AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
     AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default="eu-north-1")
     AWS_S3_SIGNATURE_VERSION = 's3v4'
-    
-    # Set storage backends for both static and media files
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-    # Additional AWS settings
-    AWS_S3_OBJECT_PARAMETERS = {
-        'CacheControl': 'max-age=86400',  # Optimize caching
-    }
-    AWS_S3_FILE_OVERWRITE = False  # Prevent overwriting files
-    AWS_QUERYSTRING_AUTH = False  # Public URLs for static/media files
     AWS_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
     AWS_DEFAULT_ACL = None  # Avoids issues with public/private access
+    MEDIA_URL = f'https://{AWS_CUSTOM_DOMAIN}/'
+    MEDIA_ROOT = None  # Don't use local media root when using S3
 
-elif STORAGE_BACKEND == 'ngnix':
-    # Nginx (File system storage) setup for both static and media
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+    }
 
+elif STORAGE_BACKEND == 'whitenoise':
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+elif STORAGE_BACKEND == 'cpanel':
+    # cpanel static & media root
     STATIC_ROOT = config('STATIC_ROOT', default=os.path.join(BASE_DIR, 'staticfiles'))
     MEDIA_ROOT = config('MEDIA_ROOT', default=os.path.join(BASE_DIR, 'uploads'))
 
-elif STORAGE_BACKEND == 'whitenoise':
-    # Use Whitenoise for static file handling in production (commonly used with Heroku or Docker)
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-
-    # Whitenoise doesn't handle media, so we keep media as local storage
-    MEDIA_URL = '/uploads/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
-
-else:
-    # Local file system storage (default for development)
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-    
 FILE_UPLOAD_PERMISSIONS = 0o644  # Ensures uploaded files are readable by web server
 
 # Default primary key field type
@@ -272,7 +269,6 @@ SESSION_COOKIE_HTTPONLY = True
 CELERY_RESULT_BACKEND="redis://redis:6379"
 CELERY_BROKER_URL= "redis://redis:6379"
 
-
 if config('EMAIL_BACKEND') == "smtp":
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
@@ -306,14 +302,14 @@ if not USE_CELERY:
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "my-local-memory-cache",
+            "LOCATION": "unique-snowflake",
         }
     }
 else:
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": config("CELERY_BROKER_REDIS_URL", default="redis://localhost:6379"),
+            "LOCATION": CELERY_BROKER_URL,
         }
     }
 

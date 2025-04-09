@@ -1,3 +1,23 @@
 # .gitignore for Django (server folder)
 # Database
 data/
+
+# Ignore collected static files but not app static files
+/staticfiles/
+
+# Environment
+.env.dev
+.env.local
+.env.prod
+.env.dev
+.env.prod
+.env.test
+.env.staging
+
+# Media files (your requirement)
+media/
+uploads/
+uploads/*
+uploads/**/*
+/uploads/
+/uploads
