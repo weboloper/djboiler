@@ -13,3 +13,7 @@ def _send_email(subject, message, recipient_list):
     email = EmailMessage(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list)
     email.content_subtype = 'html'  # Ensure HTML format
     email.send()
+
+@shared_task
+def add(x, y):
+    return x + y

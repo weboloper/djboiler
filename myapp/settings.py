@@ -45,7 +45,6 @@ SITE_URL=config('SITE_URL')
 
 # Application definition
 USE_CELERY = config("USE_CELERY", default=False, cast=bool)
-USE_STREAM_BLOCKS = config("USE_STREAM_BLOCKS", default=False, cast=bool)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -73,12 +72,6 @@ if USE_CELERY:
     INSTALLED_APPS += [
         "django_celery_beat",
         "django_celery_results",
-    ]
-
-if USE_STREAM_BLOCKS:
-    INSTALLED_APPS += [
-        "streamblocks",
-        "streamfield",
     ]
 
 MIDDLEWARE = [
@@ -276,25 +269,8 @@ CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
 
-if USE_CELERY:
-    # Auto-reconnect on startup
-    CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-
-    # Optionally, configure Celery Beat (task scheduler) in production
-    CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
-
-    # Production settings 
-    if config('CELERY_BROKER') == "redis":
-        CELERY_RESULT_BACKEND="django-db"
-        CELERY_BROKER_URL= config("CELERY_BROKER_REDIS_URL", default="redis://localhost:6379")
-        CELERY_TASK_ALWAYS_EAGER = False  # Run tasks asynchronously in production
-        CELERYD_POOL = 'prefork'
-    else:
-        CELERY_RESULT_BACKEND="django-db"
-        CELERY_BROKER_URL="sqla+sqlite:///celerydb.sqlite3"
-        CELERY_TASK_ALWAYS_EAGER = True  # Run tasks synchronously in development
-        CELERYD_POOL = 'solo'
-    
+CELERY_RESULT_BACKEND="redis://redis:6379"
+CELERY_BROKER_URL= "redis://redis:6379"
 
 
 if config('EMAIL_BACKEND') == "smtp":
