@@ -1,0 +1,10 @@
+docker-compose build
+docker-compose up
+docker exec -it django_app /bin/bash # veya docker exec -it django_app sh
+docker-compose run django_app sh -c "django-admin startapp newapp ." # tek sefere mahsus kod
+docker-compose exec django_app python manage.py collectstatic
+
+
+#ip bulma pgadmin4 için
+docker ps
+docker inspect ilk 2 harf
