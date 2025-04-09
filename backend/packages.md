@@ -17,3 +17,4 @@ redis
 django-streamfield
 django-summernote
 psycopg2-binary
+gunicorn

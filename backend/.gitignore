@@ -1,0 +1,72 @@
+# .gitignore for Django (server folder)
+
+# Python compiled files
+*.pyc
+*.pyo
+__pycache__/
+
+# Environment
+.env.local
+.env.production
+.env.staging
+
+# Media files (your requirement)
+media/
+uploads/
+uploads/*
+uploads/**/*
+/uploads/
+/uploads
+
+# Database
+*.sqlite3
+db.sqlite3
+celerydb.sqlite3
+data/
+
+# Django migrations
+*/migrations/*.pyc
+*/migrations/__pycache__/
+
+# Ignore collected static files but not app static files
+/staticfiles/
+/static/
+
+
+# Allow static files inside apps
+!*/static/*
+
+/node_modules/
+/node_modules
+
+/apps/ingredient/data/
+__src/
+/__src/
+/__src
+
+# Logs
+*.log
+
+# Virtual environment folder
+env/
+venv/
+.env.local
+.env.prod
+# .env.dev
+.env.prod
+.env.test
+.env.staging
+
+# IDE files (VSCode, PyCharm)
+.vscode/
+.idea/
+
+# MacOS specific
+.DS_Store
+
+
+#ngix
+public/
+tmp
+stderr.log
+passenger_wsgi.py
