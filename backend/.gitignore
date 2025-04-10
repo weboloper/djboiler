@@ -1,67 +1,51 @@
-# .gitignore for Django (server folder)
+# =======================================
+# 🐍 .gitignore for Django (Server Folder)
+# =======================================
 
-# Python compiled files
+# ─── PYTHON COMPILED FILES ─────────────
 *.pyc
 *.pyo
 __pycache__/
 
-# Environment
-.env.dev
-.env.local
-.env.prod
-.env.dev
-.env.prod
-.env.test
-.env.staging
+# ─── ENVIRONMENT VARIABLES ─────────────
+.env
+.env.*
+!.env.sample  # Keep a template for reference
 
-# Media files (your requirement)
-media/
-uploads/
-uploads/*
-uploads/**/*
-/uploads/
-/uploads
-
-# Database
+# ─── DATABASE FILES ────────────────────
 *.sqlite3
 db.sqlite3
 celerydb.sqlite3
 data/
 
-# Django migrations
+# ─── DJANGO MIGRATIONS ─────────────────
 */migrations/*.pyc
 */migrations/__pycache__/
 
-# Ignore collected static files but not app static files
-/staticfiles/
+# ─── STATIC & MEDIA FILES ──────────────
+/staticfiles/         # Collected static files
+/media/               # Media files
+/uploads/             # Uploads folder
 
-# Allow static files inside apps
+# Allow app-level static files (e.g. myapp/static/)
 !*/static/*
 
+# ─── NODE MODULES ──────────────────────
 /node_modules/
-/node_modules
 
-/apps/ingredient/data/
-__src/
-/__src/
-/__src
-
-# Logs
+# ─── LOG FILES ─────────────────────────
 *.log
+stderr.log
 
-# Virtual environment folder
+# ─── VIRTUAL ENVIRONMENTS ─────────────
 env/
 venv/
 
-# IDE files (VSCode, PyCharm)
+# ─── IDE & OS FILES ────────────────────
 .vscode/
 .idea/
-
-# MacOS specific
 .DS_Store
 
-
-#ngix
+# ─── NGINX / TEMP FILES ────────────────
 public/
-tmp
-stderr.log
+tmp/

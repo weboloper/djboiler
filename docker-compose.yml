@@ -37,6 +37,7 @@ services:
     container_name: django_app
     # command: python manage.py runserver 0.0.0.0:8000
     command: gunicorn --bind 0.0.0.0:8000 myapp.wsgi:application  # Gunicorn ile çalıştırma
+    # command: gunicorn --bind 0.0.0.0:8000 myapp.wsgi:application -w 1 # 1 worker with the -w flag for low trafic
     depends_on:
       - db
       - redis

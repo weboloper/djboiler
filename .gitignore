@@ -1,23 +1,25 @@
-# .gitignore for Django (server folder)
-# Database
+# ======================
+# Django .gitignore
+# ======================
+
+# ─── DATABASE FILES ───────────────────────────────
 data/
 
-# Ignore collected static files but not app static files
-/staticfiles/
+# ─── ENVIRONMENT FILES ────────────────────────────
+.env
+.env.*
+!.env.sample-cpanel  # Optional: keep a template
 
-# Environment
-.env.dev
-.env.local
-.env.prod
-.env.dev
-.env.prod
-.env.test
-.env.staging
+# ─── STATIC & MEDIA FILES ─────────────────────────
+/staticfiles/       # Ignore collected static files (not app static)
+/media/             # Ignore user-uploaded media
+/uploads/           # Custom upload folder
 
-# Media files (your requirement)
-media/
-uploads/
-uploads/*
-uploads/**/*
-/uploads/
-/uploads
+
+# ─── MISC ─────────────────────────────────────────
+*.bak
+*.tmp
+
+# ─── VIRTUAL ENVIRONMENTS ─────────────
+env/
+venv/
