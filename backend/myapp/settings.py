@@ -50,7 +50,19 @@ SECRET_KEY =  config('DJANGO_SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv(), default=["localhost", "127.0.0.1"])
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', cast=Csv(), default=["localhost", "127.0.0.1"])
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', cast=Csv(), default=["localhost", "127.0.0.1", "myapp.test", "*.myapp.test"])
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "OPTIONS",
+]
+# CORS_ALLOW_HEADERS = [
+#     "content-type",
+#     "authorization",
+# ]
 
 FRONTEND_URL=config('FRONTEND_URL')
 SITE_URL=config('SITE_URL')
@@ -183,8 +195,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static',]
 
-MEDIA_URL = '/uploads/'
-MEDIA_ROOT = BASE_DIR / 'uploads'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Storage Backend Configuration
 STORAGE_BACKEND = config('STORAGE_BACKEND', default=None)  # Options: 's3', 'cpanel', 'whitenoise'
@@ -340,3 +352,6 @@ USE_SSL = config("USE_SSL", default=False, cast=bool)
 from .configs.ssl import *
 from .configs.summernote import *
 from .configs.csp import *
+
+USE_X_FORWARDED_HOST = True
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # For HTTPS
