@@ -75,8 +75,6 @@ project-root/
 ├── .env.sample        # .env for Cpanel shared host passenger_wsgi
 ├── passenger_wsgi.py  # application entry point for Cpanel
 
-
-
 ✅ Requirements
 
 - Docker & Docker Compose installed
