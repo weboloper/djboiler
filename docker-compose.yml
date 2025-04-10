@@ -60,6 +60,20 @@ services:
       - db
       - redis
       - app
+      
+  frontend:
+    container_name: nextjs_frontend
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    working_dir: /app
+    command: npm run dev
+    depends_on:
+      - app
+
   nginx:
     image: nginx:latest
     ports:
