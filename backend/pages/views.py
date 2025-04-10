@@ -5,7 +5,7 @@ from core.email_handler import send_email_handler
 from django.contrib import messages
 
 # Create your views here.
-def home_view(request):
+async def home_view(request):
     if request.method == "POST":
         send_email_handler(test_email)
         messages.error(request, 'Eposta gönderildi')

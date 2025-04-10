@@ -283,7 +283,10 @@ SESSION_COOKIE_HTTPONLY = True
 CELERY_RESULT_BACKEND="redis://redis:6379"
 CELERY_BROKER_URL= "redis://redis:6379"
 
-if config('EMAIL_BACKEND') == "smtp":
+# Email backend configuration
+# Email backend configuration (Choose between 'smtp' or 'console')
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  # Default backend for development
+if config('EMAIL_BACKEND', default="console") == "smtp":
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
     EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=False, cast=bool)  # Optional
@@ -292,8 +295,13 @@ if config('EMAIL_BACKEND') == "smtp":
     EMAIL_HOST_USER = config('SMTP_EMAIL_USER')
     EMAIL_HOST_PASSWORD = config('SMTP_EMAIL_PASSWORD')
     DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default="webmaster@example.com")
-else:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Email method (Choose between 'sync', 'async', or 'celery')
+EMAIL_METHOD = config('EMAIL_METHOD', default='sync')  # Options: 'async', 'celery', 'sync'
+
+# Celery settings (Optional, for background email processing)
+USE_CELERY = config('USE_CELERY', default=False, cast=bool)  # If Celery is enabled
+
 
 # Misc settings / Just to keep sqids same / Not sensitive data
 DJANGO_SQIDS_MIN_LENGTH=4
