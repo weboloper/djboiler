@@ -23,12 +23,9 @@ data/
 */migrations/__pycache__/
 
 # ─── STATIC & MEDIA FILES ──────────────
-/staticfiles/         # Collected static files
-/staticfiles/*         # Collected static files
-/media/               # Media files
-/media/*               # Media files
-/uploads/             # Uploads folder
-/uploads/*             # Uploads folder
+staticfiles/         # Collected static files
+media/               # Media files
+uploads/             # Uploads folder
 
 # Allow app-level static files (e.g. myapp/static/)
 !*/static/*
