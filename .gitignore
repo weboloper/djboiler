@@ -11,10 +11,9 @@ data/
 !.env.sample-cpanel  # Optional: keep a template
 
 # ─── STATIC & MEDIA FILES ─────────────────────────
-staticfiles/       # Ignore collected static files (not app static)
-media/             # Ignore user-uploaded media
-uploads/           # Custom upload folder
-
+staticfiles/
+media/
+uploads/
 
 # ─── MISC ─────────────────────────────────────────
 *.bak
