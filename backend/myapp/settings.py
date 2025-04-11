@@ -292,8 +292,8 @@ CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
 
-CELERY_RESULT_BACKEND="redis://redis:6379"
-CELERY_BROKER_URL= "redis://redis:6379"
+CELERY_RESULT_BACKEND=config("CELERY_RESULT_BACKEND", default="redis://redis:6379")
+CELERY_BROKER_URL=config("CELERY_BROKER_URL", default="redis://redis:6379")
 
 # Email backend configuration
 # Email backend configuration (Choose between 'smtp' or 'console')

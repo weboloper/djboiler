@@ -6,25 +6,25 @@ It also supports running in environments with or without Docker (e.g., VPS with 
 ▶️ Django Backend + Nginx:
 
 ```bash
-docker-compose up
+docker-compose build
 ```
 
-▶️ Django + Celery Worker
+▶️ Django + Celery Worker + Redis
 
 ```bash
-docker-compose --profile celery up
+docker-compose --profile celery build
 ```
 
 ▶️ Next.js Frontend + Django API
 
 ```bash
-docker-compose --profile nextjs up
+docker-compose --profile nextjs build
 ```
 
-▶️ Next.js Frontend + Django API + Celery Worker
+▶️ Next.js Frontend + Django API + Celery Worker + Redis
 
 ```bash
-docker-compose --profile nextjs --profile celery up
+docker-compose --profile nextjs --profile celery build
 ```
 
 📦 Services Overview

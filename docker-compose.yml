@@ -2,7 +2,7 @@ services:
   redis:
     image: redis
     container_name: redis
-
+    
   db:
     image: postgres
     volumes:
@@ -15,7 +15,7 @@ services:
     restart:  always
     ports: 
       - "5432:5432"
-
+    
   pgadmin:
     container_name: pgadmin4
     image: dpage/pgadmin4
@@ -25,7 +25,7 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=root
     ports:
       - "5050:80"
-
+    
   backend:
     build: 
       context: ./backend    # Django uygulamanızın bulunduğu dizin
@@ -41,6 +41,7 @@ services:
     depends_on:
       - db
       - redis
+    
   celery:
     restart: always
     build: 
@@ -66,9 +67,12 @@ services:
       - "3000:3000"
     volumes:
       - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
     working_dir: /app
     depends_on:
       - backend
+    command: npm run dev
     profiles:
       - nextjs
     # Optional: for local dev convenience
